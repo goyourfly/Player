@@ -19,14 +19,18 @@ import android.content.IntentFilter;
 import android.content.UriPermission;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Icon;
 import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
+import android.media.MediaFormat;
+import android.media.MediaMetadataRetriever;
 import android.media.audiofx.AudioEffect;
 import android.media.audiofx.LoudnessEnhancer;
 import android.net.Uri;
+import android.opengl.GLES20;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -37,6 +41,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.Rational;
 import android.util.TypedValue;
 import android.view.HapticFeedbackConstants;
@@ -44,6 +49,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -59,6 +65,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
@@ -97,12 +104,18 @@ import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.ui.TimeBar;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.MimeTypes;
+import com.google.android.exoplayer2.video.VideoDecoderGLSurfaceView;
+import com.google.android.exoplayer2.video.VideoFrameMetadataListener;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -212,6 +225,8 @@ public class PlayerActivity extends Activity {
             Utils.toggleSystemUi(PlayerActivity.this, playerView, false);
         }
     };
+
+    private Bitmap outBitmap;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -1166,6 +1181,29 @@ public class PlayerActivity extends Activity {
                 .build();
         player.setAudioAttributes(audioAttributes, true);
 
+        player.setVideoFrameMetadataListener(new VideoFrameMetadataListener() {
+            @Override
+            public void onVideoFrameAboutToBeRendered(long l, long l1, Format format, @Nullable MediaFormat mediaFormat) {
+                long t1 = System.currentTimeMillis();
+                TextureView surfaceView = (TextureView) playerView.getVideoSurfaceView();
+                if (surfaceView == null)
+                    return;
+                if (outBitmap == null){
+                    outBitmap = Bitmap.createBitmap(surfaceView.getWidth(),surfaceView.getHeight(),Bitmap.Config.ARGB_8888);
+                }
+                surfaceView.getBitmap(outBitmap);
+                
+//                try {
+//                    FileOutputStream outputStream = new FileOutputStream(new File(getCacheDir() ,"test.jpg"));
+//                    outBitmap.compress(Bitmap.CompressFormat.JPEG,100,outputStream);
+//                    outputStream.close();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+                Log.d("fkdafjl","TimeCost:" + (System.currentTimeMillis() - t1));
+            }
+        });
+
         if (mPrefs.skipSilence) {
             player.setSkipSilenceEnabled(true);
         }
@@ -1284,6 +1322,33 @@ public class PlayerActivity extends Activity {
             playerView.setControllerShowTimeoutMs(PlayerActivity.CONTROLLER_TIMEOUT);
             player.setPlayWhenReady(true);
         }
+    }
+
+    public static Bitmap getVideoFrame(Context context, Uri uri, long time) {
+
+        Bitmap bitmap = null;
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+
+        try {
+
+            retriever.setDataSource(context, uri);
+            bitmap = retriever.getFrameAtTime(time);
+
+        } catch (RuntimeException ex) {
+            ex.printStackTrace();
+
+        } finally {
+
+            try {
+
+                retriever.release();
+
+            } catch (RuntimeException ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        return bitmap;
     }
 
     private void savePlayer() {

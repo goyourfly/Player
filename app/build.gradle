@@ -105,6 +105,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.9.3'
     implementation project(path: ':doubletapplayerview')
     implementation project(path: ':android-file-chooser')
+    implementation project(path: ':android-smbfile-chooser')
     implementation fileTree(dir: "libs", include: ["extension-*.aar"])
     implementation fileTree(dir: "libs", include: ["library-*.aar"])
 }

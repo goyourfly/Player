@@ -1192,7 +1192,7 @@ public class PlayerActivity extends Activity {
                     outBitmap = Bitmap.createBitmap(surfaceView.getWidth(),surfaceView.getHeight(),Bitmap.Config.ARGB_8888);
                 }
                 surfaceView.getBitmap(outBitmap);
-                
+
 //                try {
 //                    FileOutputStream outputStream = new FileOutputStream(new File(getCacheDir() ,"test.jpg"));
 //                    outBitmap.compress(Bitmap.CompressFormat.JPEG,100,outputStream);
@@ -1588,25 +1588,26 @@ public class PlayerActivity extends Activity {
         } else if ((isTvBox && mPrefs.fileAccess.equals("auto")) || mPrefs.fileAccess.equals("legacy")) {
             Utils.alternativeChooser(this, pickerInitialUri, true);
         } else {
-            enableRotation();
-
-            if (pickerInitialUri == null || Utils.isSupportedNetworkUri(pickerInitialUri) || !Utils.fileExists(this, pickerInitialUri)) {
-                pickerInitialUri = Utils.getMoviesFolderUri();
-            }
-
-            final Intent intent = createBaseFileIntent(Intent.ACTION_OPEN_DOCUMENT, pickerInitialUri);
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("video/*");
-            intent.putExtra(Intent.EXTRA_MIME_TYPES, Utils.supportedMimeTypesVideo);
-
-            if (Build.VERSION.SDK_INT < 30) {
-                final ComponentName systemComponentName = Utils.getSystemComponent(this, intent);
-                if (systemComponentName != null) {
-                    intent.setComponent(systemComponentName);
-                }
-            }
-
-            safelyStartActivityForResult(intent, REQUEST_CHOOSER_VIDEO);
+            Utils.alternativeChooser(this, pickerInitialUri, true);
+//            enableRotation();
+//
+//            if (pickerInitialUri == null || Utils.isSupportedNetworkUri(pickerInitialUri) || !Utils.fileExists(this, pickerInitialUri)) {
+//                pickerInitialUri = Utils.getMoviesFolderUri();
+//            }
+//
+//            final Intent intent = createBaseFileIntent(Intent.ACTION_OPEN_DOCUMENT, pickerInitialUri);
+//            intent.addCategory(Intent.CATEGORY_OPENABLE);
+//            intent.setType("video/*");
+//            intent.putExtra(Intent.EXTRA_MIME_TYPES, Utils.supportedMimeTypesVideo);
+//
+//            if (Build.VERSION.SDK_INT < 30) {
+//                final ComponentName systemComponentName = Utils.getSystemComponent(this, intent);
+//                if (systemComponentName != null) {
+//                    intent.setComponent(systemComponentName);
+//                }
+//            }
+//
+//            safelyStartActivityForResult(intent, REQUEST_CHOOSER_VIDEO);
         }
     }
 

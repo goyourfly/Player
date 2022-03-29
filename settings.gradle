@@ -1,2 +1,3 @@
 include ':app', ':doubletapplayerview', 'android-file-chooser'
 rootProject.name = "Player"
+include ':android-smbfile-chooser'

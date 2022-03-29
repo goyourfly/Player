@@ -22,6 +22,7 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.LocaleList;
 import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
@@ -50,6 +51,7 @@ import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.ui.StyledPlayerControlView;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.obsez.android.lib.filechooser.ChooserDialog;
+import com.obsez.android.lib.smbfilechooser.SmbFileChooserDialog;
 
 import java.io.File;
 import java.io.InputStream;
@@ -58,6 +60,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import jcifs.smb.NtlmPasswordAuthenticator;
+import jcifs.smb.SmbException;
 
 class Utils {
 
@@ -608,39 +613,65 @@ class Utils {
 
         final String[] suffixes = (video ? supportedExtensionsVideo : supportedExtensionsSubtitle);
 
-        ChooserDialog chooserDialog = new ChooserDialog(activity, R.style.FileChooserStyle_Dark)
-                .withStartFile(startPath)
-                .withFilter(false, false, suffixes)
-                .withChosenListener(new ChooserDialog.Result() {
-                    @Override
-                    public void onChoosePath(String path, File pathFile) {
-                        activity.releasePlayer();
-                        Uri uri = DocumentFile.fromFile(pathFile).getUri();
-                        if (video) {
-                            activity.mPrefs.setPersistent(true);
-                            activity.mPrefs.updateMedia(activity, uri, null);
-                            activity.searchSubtitles();
-                        } else {
-                            // Convert subtitles to UTF-8 if necessary
-                            SubtitleUtils.clearCache(activity);
-                            uri = SubtitleUtils.convertToUTF(activity, uri);
+//        ChooserDialog chooserDialog = new ChooserDialog(activity, R.style.FileChooserStyle_Dark)
+//                .withStartFile(startPath)
+//                .withFilter(false, false, suffixes)
+//                .withChosenListener(new ChooserDialog.Result() {
+//                    @Override
+//                    public void onChoosePath(String path, File pathFile) {
+//                        activity.releasePlayer();
+//                        Uri uri = DocumentFile.fromFile(pathFile).getUri();
+//                        if (video) {
+//                            activity.mPrefs.setPersistent(true);
+//                            activity.mPrefs.updateMedia(activity, uri, null);
+//                            activity.searchSubtitles();
+//                        } else {
+//                            // Convert subtitles to UTF-8 if necessary
+//                            SubtitleUtils.clearCache(activity);
+//                            uri = SubtitleUtils.convertToUTF(activity, uri);
+//
+//                            activity.mPrefs.updateSubtitle(uri);
+//                        }
+//                        PlayerActivity.focusPlay = true;
+//                        activity.initializePlayer();
+//                    }
+//                })
+//                // to handle the back key pressed or clicked outside the dialog:
+//                .withOnCancelListener(new DialogInterface.OnCancelListener() {
+//                    public void onCancel(DialogInterface dialog) {
+//                        dialog.cancel(); // MUST have
+//                    }
+//                });
+//        chooserDialog
+//                .withOnBackPressedListener(dialog -> chooserDialog.goBack())
+//                .withOnLastBackPressedListener(dialog -> dialog.cancel());
+//        chooserDialog.build().show();
 
-                            activity.mPrefs.updateSubtitle(uri);
-                        }
-                        PlayerActivity.focusPlay = true;
-                        activity.initializePlayer();
+        SmbFileChooserDialog.newDialog(activity, "smb://10.10.80.164/", new NtlmPasswordAuthenticator("smb://10.10.80.164/", "share", null, NtlmPasswordAuthenticator.AuthenticationType.NULL))
+                .setResources("select a directory", "choose", "cancel")
+                .setFilter(/*only directories (no files)*/ true, /*don't show hidden files/folders*/ false)
+                .setOnChosenListener((path, file) -> {
+                    String msg = "error";
+                    try{
+                        msg = file.isDirectory() ? "directory" : "file" + " selected: " + path;
+                    } catch(SmbException e){
+                        e.printStackTrace();
                     }
+                    // This is NOT main UI thread. you can NOT access SmbFiles on UI thread.
+                    Handler mainHandler = new Handler(activity.getMainLooper());
+                    String finalMsg = msg;
+                    mainHandler.post(() -> {
+                        Toast.makeText(activity,
+                                finalMsg,
+                                Toast.LENGTH_SHORT)
+                                .show();
+                    });
                 })
-                // to handle the back key pressed or clicked outside the dialog:
-                .withOnCancelListener(new DialogInterface.OnCancelListener() {
-                    public void onCancel(DialogInterface dialog) {
-                        dialog.cancel(); // MUST have
-                    }
-                });
-        chooserDialog
-                .withOnBackPressedListener(dialog -> chooserDialog.goBack())
-                .withOnLastBackPressedListener(dialog -> dialog.cancel());
-        chooserDialog.build().show();
+                .setExceptionHandler((exception, id) -> {
+                    Toast.makeText(activity, exception.getMessage(), Toast.LENGTH_LONG).show();
+                    return true;
+                })
+                .show();
 
         return true;
     }

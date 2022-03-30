@@ -697,34 +697,34 @@ public class PlayerActivity extends Activity {
                 Canvas canvas = new Canvas(bitmap);
                 for (int i = 0; i < list.size(); i++) {
                     Rect rect = list.get(i);
-                    int[] pixels = new int[rect.width() * rect.height()];
-                    Log.d("BitmapBound", "Plen:" + i + "," + pixels.length + ",l:" + list.size());
-                    if (pixels.length == 0) {
+                    if (rect.width() * rect.height() == 0) {
                         continue;
                     }
-//                    outBitmap.getPixels(pixels, 0, rect.width(), rect.left, rect.top, rect.width(), rect.height());
-//                    // int color = bitmap.getPixel(rect.centerX(),rect.centerY());
-//                    int r = Color.red(pixels[0]);
-//                    int g = Color.green(pixels[0]);
-//                    int b = Color.blue(pixels[0]);
-//                    int count = rect.width() * rect.height();
-//                    for (int x = 1; x < count; x++) {
-//                        r += Color.red(pixels[x]);
-//                        g += Color.green(pixels[x]);
-//                        b += Color.blue(pixels[x]);
-//                    }
-//                    r = r / count;
-//                    g = g / count;
-//                    b = b / count;
-//
-//                    int newColor = Utils.getBrightnessColor(r, g, b, outInfo.brightness);
-//                    r = Color.red(newColor);
-//                    g = Color.green(newColor);
-//                    b = Color.blue(newColor);
-//                    paint.setStrokeWidth(5);
-//                    paint.setStyle(Paint.Style.STROKE);
-//                    paint.setColor(Color.RED);
-//                    canvas.drawRect(rect, paint);
+                    int[] pixels = new int[rect.width() * rect.height()];
+                    Log.d("BitmapBound", "Plen:" + i + "," + pixels.length + ",l:" + list.size());
+                    outBitmap.getPixels(pixels, 0, rect.width(), rect.left, rect.top, rect.width(), rect.height());
+                    // int color = bitmap.getPixel(rect.centerX(),rect.centerY());
+                    int r = Color.red(pixels[0]);
+                    int g = Color.green(pixels[0]);
+                    int b = Color.blue(pixels[0]);
+                    int count = rect.width() * rect.height();
+                    for (int x = 1; x < count; x++) {
+                        r += Color.red(pixels[x]);
+                        g += Color.green(pixels[x]);
+                        b += Color.blue(pixels[x]);
+                    }
+                    r = r / count;
+                    g = g / count;
+                    b = b / count;
+
+                    int newColor = Utils.getBrightnessColor(r, g, b, outInfo.brightness);
+                    r = Color.red(newColor);
+                    g = Color.green(newColor);
+                    b = Color.blue(newColor);
+                    paint.setStrokeWidth(5);
+                    paint.setStyle(Paint.Style.STROKE);
+                    paint.setColor(Color.RED);
+                    canvas.drawRect(rect, paint);
                 }
 
                 ImageView imageView = new ImageButton(PlayerActivity.this);

@@ -682,50 +682,56 @@ public class PlayerActivity extends Activity {
                 }
                 Log.d("BitmapBound", "Bitmap:" + outBitmap.getWidth() + "," + outBitmap.getHeight() + ",outRect=" + outRect);
 
-
-                WLEDSettingsActivity.WledInfo info = WLEDSettingsActivity.read();
-                info.leftPadding = outRect.left;
-                info.topPadding = outRect.top;
-                info.rightPadding = outBitmap.getWidth() - 5 - outRect.right;
-                info.bottomPadding = outBitmap.getWidth() - 5- outRect.bottom;
-
-                List<Rect> list = PreviewView.measureRect(outBitmap.getWidth(), outBitmap.getHeight(),
-                        info.leftNum, info.topNum, info.rightNum, info.bottomNum,
-                        info.leftPadding, info.topPadding, info.rightPadding, info.bottomPadding,
-                        info.leftOffset, info.topOffset, info.rightOffset, info.bottomOffset);
+//
+//                WLEDSettingsActivity.WledInfo info = WLEDSettingsActivity.read();
+//                info.leftPadding = outRect.left;
+//                info.topPadding = outRect.top;
+//                info.rightPadding = outBitmap.getWidth() - 5 - outRect.right;
+//                info.bottomPadding = outBitmap.getWidth() - 5- outRect.bottom;
+//
+//                List<Rect> list = PreviewView.measureRect(outBitmap.getWidth(), outBitmap.getHeight(),
+//                        info.leftNum, info.topNum, info.rightNum, info.bottomNum,
+//                        info.leftPadding, info.topPadding, info.rightPadding, info.bottomPadding,
+//                        info.leftOffset, info.topOffset, info.rightOffset, info.bottomOffset);
                 Bitmap bitmap = Bitmap.createBitmap(outBitmap);
                 Canvas canvas = new Canvas(bitmap);
-                for (int i = 0; i < list.size(); i++) {
-                    Rect rect = list.get(i);
-                    if (rect.width() <= 0 || rect.height() <= 0) {
-                        continue;
-                    }
-                    int[] pixels = new int[rect.width() * rect.height()];
-                    Log.d("BitmapBound", "Plen:" + i + "," + pixels.length + ",l:" + list.size());
-                    outBitmap.getPixels(pixels, 0, rect.width(), rect.left, rect.top, rect.width(), rect.height());
-                    // int color = bitmap.getPixel(rect.centerX(),rect.centerY());
-                    int r = Color.red(pixels[0]);
-                    int g = Color.green(pixels[0]);
-                    int b = Color.blue(pixels[0]);
-                    int count = rect.width() * rect.height();
-                    for (int x = 1; x < count; x++) {
-                        r += Color.red(pixels[x]);
-                        g += Color.green(pixels[x]);
-                        b += Color.blue(pixels[x]);
-                    }
-                    r = r / count;
-                    g = g / count;
-                    b = b / count;
 
-                    int newColor = Utils.getBrightnessColor(r, g, b, outInfo.brightness);
-                    r = Color.red(newColor);
-                    g = Color.green(newColor);
-                    b = Color.blue(newColor);
-                    paint.setStrokeWidth(5);
-                    paint.setStyle(Paint.Style.STROKE);
-                    paint.setColor(Color.RED);
-                    canvas.drawRect(rect, paint);
-                }
+                paint.setStrokeWidth(5);
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setColor(Color.GREEN);
+                canvas.drawRect(outRect, paint);
+
+//                for (int i = 0; i < list.size(); i++) {
+//                    Rect rect = list.get(i);
+//                    if (rect.width() <= 0 || rect.height() <= 0) {
+//                        continue;
+//                    }
+//                    int[] pixels = new int[rect.width() * rect.height()];
+//                    Log.d("BitmapBound", "Plen:" + i + "," + pixels.length + ",l:" + list.size());
+//                    outBitmap.getPixels(pixels, 0, rect.width(), rect.left, rect.top, rect.width(), rect.height());
+//                    // int color = bitmap.getPixel(rect.centerX(),rect.centerY());
+//                    int r = Color.red(pixels[0]);
+//                    int g = Color.green(pixels[0]);
+//                    int b = Color.blue(pixels[0]);
+//                    int count = rect.width() * rect.height();
+//                    for (int x = 1; x < count; x++) {
+//                        r += Color.red(pixels[x]);
+//                        g += Color.green(pixels[x]);
+//                        b += Color.blue(pixels[x]);
+//                    }
+//                    r = r / count;
+//                    g = g / count;
+//                    b = b / count;
+//
+//                    int newColor = Utils.getBrightnessColor(r, g, b, outInfo.brightness);
+//                    r = Color.red(newColor);
+//                    g = Color.green(newColor);
+//                    b = Color.blue(newColor);
+//                    paint.setStrokeWidth(5);
+//                    paint.setStyle(Paint.Style.STROKE);
+//                    paint.setColor(Color.RED);
+//                    canvas.drawRect(rect, paint);
+//                }
 
                 ImageView imageView = new ImageButton(PlayerActivity.this);
                 imageView.setImageBitmap(bitmap);
@@ -738,8 +744,8 @@ public class PlayerActivity extends Activity {
                         .setPositiveButton("确认", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                WLEDSettingsActivity.save(info);
-                                outInfo = null;
+//                                WLEDSettingsActivity.save(info);
+//                                outInfo = null;
                             }
                         })
                         .setNegativeButton("取消", new DialogInterface.OnClickListener() {

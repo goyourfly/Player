@@ -1189,7 +1189,7 @@ public class PlayerActivity extends Activity {
                 if (surfaceView == null)
                     return;
                 if (outBitmap == null) {
-                    outBitmap = Bitmap.createBitmap(surfaceView.getWidth(), surfaceView.getHeight(), Bitmap.Config.ARGB_8888);
+                    outBitmap = Bitmap.createBitmap(surfaceView.getWidth()/4, surfaceView.getHeight()/4, Bitmap.Config.ARGB_8888);
                 }
                 surfaceView.getBitmap(outBitmap);
 

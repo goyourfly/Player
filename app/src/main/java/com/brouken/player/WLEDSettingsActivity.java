@@ -8,15 +8,19 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import java.util.List;
+import java.util.Objects;
 
 import io.paperdb.Paper;
 import okhttp3.internal.Util;
@@ -24,35 +28,44 @@ import okhttp3.internal.Util;
 public class WLEDSettingsActivity extends AppCompatActivity {
     public static Bitmap bitmap;
 
+    EditText etIp;
+    EditText etPort;
+
+    EditText etLeftNum;
+    EditText etTopNum;
+    EditText etRightNum;
+    EditText etBottomNum;
+
+    EditText etLeftMargin;
+    EditText etTopMargin;
+    EditText etRightMargin;
+    EditText etBottomMargin;
+
+    EditText etBrightness;
+    EditText etStrokeWidth;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_settings_wled);
 
-        ImageView ivBack = findViewById(R.id.iv_back);
-        ivBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onBackPressed();
-            }
-        });
+        Objects.requireNonNull(getSupportActionBar()).setDisplayShowHomeEnabled(true);
 
-        EditText etIp = findViewById(R.id.et_ip_address);
-        EditText etPort = findViewById(R.id.et_port);
+        etIp = findViewById(R.id.et_ip_address);
+        etPort = findViewById(R.id.et_port);
 
-        EditText etLeftNum = findViewById(R.id.et_left_num);
-        EditText etTopNum = findViewById(R.id.et_top_num);
-        EditText etRightNum = findViewById(R.id.et_right_num);
-        EditText etBottomNum = findViewById(R.id.et_bottom_num);
+        etLeftNum = findViewById(R.id.et_left_num);
+        etTopNum = findViewById(R.id.et_top_num);
+        etRightNum = findViewById(R.id.et_right_num);
+        etBottomNum = findViewById(R.id.et_bottom_num);
 
-        EditText etLeftMargin = findViewById(R.id.et_left_margin);
-        EditText etTopMargin = findViewById(R.id.et_top_margin);
-        EditText etRightMargin = findViewById(R.id.et_right_margin);
-        EditText etBottomMargin = findViewById(R.id.et_bottom_margin);
+        etLeftMargin = findViewById(R.id.et_left_margin);
+        etTopMargin = findViewById(R.id.et_top_margin);
+        etRightMargin = findViewById(R.id.et_right_margin);
+        etBottomMargin = findViewById(R.id.et_bottom_margin);
 
-        EditText etBrightness = findViewById(R.id.et_brightness);
-        EditText etStrokeWidth = findViewById(R.id.et_stroke_width);
-        CheckBox cbDebug = findViewById(R.id.cb_debug);
+        etBrightness = findViewById(R.id.et_brightness);
+        etStrokeWidth = findViewById(R.id.et_stroke_width);
 
         WledInfo info = read();
         etIp.setText(info.ip);
@@ -69,13 +82,21 @@ public class WLEDSettingsActivity extends AppCompatActivity {
 
         etBrightness.setText(String.valueOf(info.brightness));
         etStrokeWidth.setText(String.valueOf(info.strokeWidth));
-        cbDebug.setChecked(info.debug);
 
         refreshPreview(info);
 
-        findViewById(R.id.iv_done).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_wled, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_done: {
                 WledInfo info = new WledInfo();
                 info.ip = etIp.getText().toString();
                 info.port = Integer.parseInt(etPort.getText().toString());
@@ -92,12 +113,16 @@ public class WLEDSettingsActivity extends AppCompatActivity {
 
                 info.brightness = Integer.parseInt(etBrightness.getText().toString());
                 info.strokeWidth = Integer.parseInt(etStrokeWidth.getText().toString());
-                info.debug = cbDebug.isChecked();
-
                 save(info);
                 refreshPreview(info);
+                break;
             }
-        });
+            case android.R.id.home: {
+                onBackPressed();
+                break;
+            }
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -106,7 +131,7 @@ public class WLEDSettingsActivity extends AppCompatActivity {
         bitmap = null;
     }
 
-    private void refreshPreview(WledInfo info){
+    private void refreshPreview(WledInfo info) {
         ImageView preview = findViewById(R.id.v_preview);
         Bitmap bitmap = WLEDSettingsActivity.bitmap;
         ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) preview.getLayoutParams();
@@ -115,9 +140,9 @@ public class WLEDSettingsActivity extends AppCompatActivity {
         }
 
         Bitmap newBitmap = Bitmap.createBitmap(bitmap);
-        List<Rect> list = Utils.measureRect(bitmap.getWidth(),bitmap.getHeight(),
-                info.leftNum,info.topNum,info.rightNum,info.bottomNum,
-                info.leftMargin,info.topMargin,info.rightMargin,info.bottomMargin,
+        List<Rect> list = Utils.measureRect(bitmap.getWidth(), bitmap.getHeight(),
+                info.leftNum, info.topNum, info.rightNum, info.bottomNum,
+                info.leftMargin, info.topMargin, info.rightMargin, info.bottomMargin,
                 info.strokeWidth);
         Canvas canvas = new Canvas(newBitmap);
         Paint paint = new Paint();
@@ -146,7 +171,7 @@ public class WLEDSettingsActivity extends AppCompatActivity {
             paint.setColor(Color.RED);
             canvas.drawRect(rect, paint);
 
-            rect.inset(rect.width()/4,rect.height()/4);
+            rect.inset(rect.width() / 4, rect.height() / 4);
             paint.setStyle(Paint.Style.FILL);
             paint.setColor(newColor);
             canvas.drawRect(rect, paint);
@@ -154,13 +179,13 @@ public class WLEDSettingsActivity extends AppCompatActivity {
         preview.setImageBitmap(newBitmap);
     }
 
-    public static void save(WledInfo info){
-        Paper.book().write("wled_config",info);
+    public static void save(WledInfo info) {
+        Paper.book().write("wled_config", info);
     }
 
     public static WledInfo read() {
         WledInfo wledInfo = Paper.book().read("wled_config");
-        if (wledInfo == null){
+        if (wledInfo == null) {
             wledInfo = new WledInfo();
             wledInfo.ip = "192.168.2.247";
             wledInfo.port = 21324;
@@ -179,7 +204,7 @@ public class WLEDSettingsActivity extends AppCompatActivity {
         return wledInfo;
     }
 
-    public static class WledInfo{
+    public static class WledInfo {
         public String ip;
         public int port;
         public int leftNum;

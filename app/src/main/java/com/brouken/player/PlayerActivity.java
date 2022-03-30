@@ -618,7 +618,7 @@ public class PlayerActivity extends Activity {
             return true;
         });
 
-        final ImageButton exoLedConfig = playerView.findViewById(R.id.exo_led_config);
+        final ImageView exoLedConfig = playerView.findViewById(R.id.exo_led_config);
         exoLedConfig.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -629,21 +629,22 @@ public class PlayerActivity extends Activity {
                 startActivityForResult(intent, REQUEST_SETTINGS);
             }
         });
-        final ImageButton exoLedSearch = playerView.findViewById(R.id.exo_led_search);
+        final ImageView exoLedSearch = playerView.findViewById(R.id.exo_led_search);
         exoLedSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (outBitmap == null)
                     return;
+                Bitmap bitmap = Utils.bitmapThreshold(outBitmap);
                 int left = 0;
                 int top = 0;
                 int right = 0;
                 int bottom = 0;
                 // left
                 out:
-                for (int x = 0; x < outBitmap.getWidth(); x++) {
-                    for (int y = 0; y < outBitmap.getHeight(); y++) {
-                        int color = outBitmap.getPixel(x, y);
+                for (int x = 0; x < bitmap.getWidth(); x++) {
+                    for (int y = 0; y < bitmap.getHeight(); y++) {
+                        int color = bitmap.getPixel(x, y);
                         if (!Utils.isEmptyColor(color)) {
                             left = x;
                             break out;
@@ -652,9 +653,9 @@ public class PlayerActivity extends Activity {
                 }
                 // top
                 out:
-                for (int y = 0; y < outBitmap.getHeight(); y++) {
-                    for (int x = 0; x < outBitmap.getWidth(); x++) {
-                        int color = outBitmap.getPixel(x, y);
+                for (int y = 0; y < bitmap.getHeight(); y++) {
+                    for (int x = 0; x < bitmap.getWidth(); x++) {
+                        int color = bitmap.getPixel(x, y);
                         if (!Utils.isEmptyColor(color)) {
                             top = y;
                             break out;
@@ -663,9 +664,9 @@ public class PlayerActivity extends Activity {
                 }
                 // right
                 out:
-                for (int x = outBitmap.getWidth() - 1; x >= 0; x--) {
-                    for (int y = 0; y < outBitmap.getHeight(); y++) {
-                        int color = outBitmap.getPixel(x, y);
+                for (int x = bitmap.getWidth() - 1; x >= 0; x--) {
+                    for (int y = 0; y < bitmap.getHeight(); y++) {
+                        int color = bitmap.getPixel(x, y);
                         if (!Utils.isEmptyColor(color)) {
                             right = x;
                             break out;
@@ -674,19 +675,19 @@ public class PlayerActivity extends Activity {
                 }
                 // bottom
                 out:
-                for (int y = outBitmap.getHeight() - 1; y >= 0; y--) {
-                    for (int x = 0; x < outBitmap.getWidth(); x++) {
-                        int color = outBitmap.getPixel(x, y);
+                for (int y = bitmap.getHeight() - 1; y >= 0; y--) {
+                    for (int x = 0; x < bitmap.getWidth(); x++) {
+                        int color = bitmap.getPixel(x, y);
                         if (!Utils.isEmptyColor(color)) {
                             bottom = y;
                             break out;
                         }
                     }
                 }
-                Log.d("BitmapBound", "Bitmap:" + outBitmap.getWidth() + "," + outBitmap.getHeight() + ",outRect=" + left + "," + top + "," + right + "," + bottom);
+                Log.d("BitmapBound", "Bitmap:" + bitmap.getWidth() + "," + bitmap.getHeight() + ",outRect=" + left + "," + top + "," + right + "," + bottom);
 
-                Bitmap bitmap = Bitmap.createBitmap(outBitmap);
-                Canvas canvas = new Canvas(bitmap);
+                Bitmap bitmap2 = Bitmap.createBitmap(bitmap);
+                Canvas canvas = new Canvas(bitmap2);
 
                 paint.setStrokeWidth(5);
                 paint.setStyle(Paint.Style.STROKE);
@@ -694,7 +695,7 @@ public class PlayerActivity extends Activity {
                 canvas.drawRect(new Rect(left,top,right,bottom), paint);
 
                 ImageView imageView = new ImageButton(PlayerActivity.this);
-                imageView.setImageBitmap(bitmap);
+                imageView.setImageBitmap(bitmap2);
                 imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
                 int finalLeft = left;
                 int finalTop = top;
@@ -709,8 +710,8 @@ public class PlayerActivity extends Activity {
                                 WLEDSettingsActivity.WledInfo info = WLEDSettingsActivity.read();
                                 info.leftMargin = finalLeft;
                                 info.topMargin = finalTop;
-                                info.rightMargin = bitmap.getWidth() - finalRight;
-                                info.bottomMargin = bitmap.getHeight() - finalBottom;
+                                info.rightMargin = bitmap2.getWidth() - finalRight;
+                                info.bottomMargin = bitmap2.getHeight() - finalBottom;
                                 WLEDSettingsActivity.save(info);
                                 outInfo = null;
                             }
@@ -1335,7 +1336,7 @@ public class PlayerActivity extends Activity {
                 if (outBitmap == null) {
                     int width = mediaFormat.getInteger(MediaFormat.KEY_WIDTH);
                     int height = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
-                    outBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                    outBitmap = Bitmap.createBitmap(width/4, height/4, Bitmap.Config.ARGB_8888);
                 }
                 if (outInfo == null && outBitmap != null) {
                     outInfo = WLEDSettingsActivity.read();

@@ -189,6 +189,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             app:tint="@color/white"
+            android:focusable="true"
+            android:nextFocusRight="@id/exo_led_config"
             android:background="?selectableItemBackgroundBorderless"
             android:padding="8dp"
             android:src="@drawable/ic_baseline_grid_3x3_24" />
@@ -198,6 +200,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginStart="10dp"
+            android:focusable="true"
             android:background="?selectableItemBackgroundBorderless"
             app:tint="@color/white"
             android:padding="8dp"

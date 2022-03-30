@@ -635,7 +635,8 @@ public class PlayerActivity extends Activity {
             public void onClick(View view) {
                 if (outBitmap == null)
                     return;
-                Bitmap bitmap = Utils.bitmapThreshold(outBitmap);
+                Bitmap bitmap = Utils.bitmapThreshold2(outBitmap);
+                bitmap = Utils.bitmapRemoveNoisy(bitmap);
                 int left = 0;
                 int top = 0;
                 int right = 0;
@@ -1336,7 +1337,11 @@ public class PlayerActivity extends Activity {
                 if (outBitmap == null) {
                     int width = mediaFormat.getInteger(MediaFormat.KEY_WIDTH);
                     int height = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
-                    outBitmap = Bitmap.createBitmap(width/4, height/4, Bitmap.Config.ARGB_8888);
+                    int scale = 8;
+                    if (width / scale < 256 || height/scale < 256){
+                        scale = 4;
+                    }
+                    outBitmap = Bitmap.createBitmap(width/scale, height/scale, Bitmap.Config.ARGB_8888);
                 }
                 if (outInfo == null && outBitmap != null) {
                     outInfo = WLEDSettingsActivity.read();

@@ -920,4 +920,73 @@ class Utils {
         bmp.setPixels(newPx, 0, width, 0, 0, width, height);//将处理后的像素信息赋给新图
         return bmp;//返回处理后的图像
     }
+
+
+    public static Bitmap bitmapThreshold2(Bitmap bm) {
+        int width = bm.getWidth();
+        int height = bm.getHeight();
+        int color;
+        int r, g, b, a;
+        Bitmap bmp = Bitmap.createBitmap(width, height
+                , Bitmap.Config.ARGB_8888);
+
+        int[] oldPx = new int[width * height];
+        int[] newPx = new int[width * height];
+        bm.getPixels(oldPx, 0, width, 0, 0, width, height);
+
+        for (int i = 0; i < width * height; i++) {
+            color = oldPx[i];
+            r = Color.red(color);
+            g = Color.green(color);
+            b = Color.blue(color);
+            a = Color.alpha(color);
+
+            int gray = (int)((float)r*0.3+(float)g*0.59+(float)b*0.11);
+
+            if(gray > 100) {
+                gray = 255;
+            } else {
+                gray = 0;
+            }
+
+            newPx[i] = Color.argb(a,gray,gray,gray);
+        }
+        bmp.setPixels(newPx, 0, width, 0, 0, width, height);
+        return bmp;
+    }
+
+    public static Bitmap bitmapRemoveNoisy(Bitmap grayBitmap) {
+        int width = grayBitmap.getWidth();
+        int height = grayBitmap.getHeight();
+        int color,gray,average;
+        int r, g, b, a = 0;
+
+        Bitmap bmp = Bitmap.createBitmap(width, height
+                , Bitmap.Config.ARGB_8888);
+
+
+
+        int[] oldPx = new int[width * height];
+        int[] newPx = new int[width * height];
+        grayBitmap.getPixels(oldPx, 0, width, 0, 0, width, height);
+
+        for (int i = 1; i < height - 1; i++) {
+            for(int j = 1;j < width - 1;j++) {
+                color = oldPx[i*width+j];
+                r = Color.red(color);//已经进行了二值化，因此r,g,b分量都等于灰度值
+                a = Color.alpha(color);
+                average = 0;
+                average = (int)((Color.red(oldPx[(i-1)*width+j-1]) + Color.red(oldPx[(i-1)*width+j]) + Color.red(oldPx[(i-1)*width+j+1])
+                        + Color.red(oldPx[(i)*width+j-1]) + Color.red(oldPx[(i)*width+j+1]) + Color.red(oldPx[(i+1)*width+j-1])
+                        + Color.red(oldPx[(i+1)*width+j]) + Color.red(oldPx[(i+1)*width+j+1])) / 8);
+                //Log.d("xyz","average = " + average + "    i = " + i*width+j);
+                if(Math.abs(r - average) > 127.5) {
+                    r = average;
+                }
+                newPx[i*width+j] = Color.argb(a,r,r,r);
+            }
+        }
+        bmp.setPixels(newPx, 0, width, 0, 0, width, height);
+        return bmp;
+    }
 }

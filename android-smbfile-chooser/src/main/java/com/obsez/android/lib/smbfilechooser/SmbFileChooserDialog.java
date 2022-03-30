@@ -187,7 +187,7 @@ public class SmbFileChooserDialog extends LightContextWrapper implements DialogI
         try {
             EXECUTOR.submit(() -> {
                 if (_smbContext != null) {
-                    _smbContext.withCredentials(auth);
+                    _smbContext = _smbContext.withCredentials(auth);
                     this._rootDirPath = "smb://" + this._serverIP + '/';
                     try {
                         this._rootDir = new SmbFile(this._rootDirPath, _smbContext);

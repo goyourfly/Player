@@ -48,6 +48,11 @@ import com.arthenica.ffmpegkit.MediaInformation;
 import com.arthenica.ffmpegkit.MediaInformationSession;
 import com.arthenica.ffmpegkit.StreamInformation;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.drm.DefaultDrmSessionManagerProvider;
+import com.google.android.exoplayer2.drm.DrmSessionManager;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.ui.StyledPlayerControlView;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.obsez.android.lib.filechooser.ChooserDialog;
@@ -68,10 +73,10 @@ class Utils {
 
     public static final String FEATURE_FIRE_TV = "amazon.hardware.fire_tv";
 
-    public static final String[] supportedExtensionsVideo = new String[] { "3gp", "avi", "m4v", "mkv", "mov", "mp4", "ts", "webm" };
-    public static final String[] supportedExtensionsSubtitle = new String[] { "srt", "ssa", "ass", "vtt", "ttml", "dfxp", "xml" };
+    public static final String[] supportedExtensionsVideo = new String[]{"3gp", "avi", "m4v", "mkv", "mov", "mp4", "ts", "webm"};
+    public static final String[] supportedExtensionsSubtitle = new String[]{"srt", "ssa", "ass", "vtt", "ttml", "dfxp", "xml"};
 
-    public static final String[] supportedMimeTypesVideo = new String[] {
+    public static final String[] supportedMimeTypesVideo = new String[]{
             // Local mime types on Android:
             MimeTypes.VIDEO_MATROSKA, // .mkv
             MimeTypes.VIDEO_MP4, // .mp4, .m4v
@@ -83,7 +88,7 @@ class Utils {
             // For remote storages:
             "video/x-m4v", // .m4v
     };
-    public static final String[] supportedMimeTypesSubtitle = new String[] {
+    public static final String[] supportedMimeTypesSubtitle = new String[]{
             MimeTypes.APPLICATION_SUBRIP,
             MimeTypes.TEXT_SSA,
             MimeTypes.TEXT_VTT,
@@ -190,8 +195,8 @@ class Utils {
     public static void adjustVolume(final Context context, final AudioManager audioManager, final CustomStyledPlayerView playerView, final boolean raise, boolean canBoost, boolean clear) {
         playerView.removeCallbacks(playerView.textClearRunnable);
 
-        final int volume = getVolume(context,false, audioManager);
-        final int volumeMax = getVolume(context,true, audioManager);
+        final int volume = getVolume(context, false, audioManager);
+        final int volumeMax = getVolume(context, true, audioManager);
         boolean volumeActive = volume != 0;
 
         // Handle volume changes outside the app (lose boost if volume is not maxed out)
@@ -269,7 +274,8 @@ class Utils {
                         }
                     }
                 }
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
         if (max) {
             return audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
@@ -281,9 +287,9 @@ class Utils {
     public static void setButtonEnabled(final Context context, final ImageButton button, final boolean enabled) {
         button.setEnabled(enabled);
         button.setAlpha(enabled ?
-                        (float) context.getResources().getInteger(R.integer.exo_media_button_opacity_percentage_enabled) / 100 :
-                        (float) context.getResources().getInteger(R.integer.exo_media_button_opacity_percentage_disabled) / 100
-                );
+                (float) context.getResources().getInteger(R.integer.exo_media_button_opacity_percentage_enabled) / 100 :
+                (float) context.getResources().getInteger(R.integer.exo_media_button_opacity_percentage_disabled) / 100
+        );
     }
 
     public static void showText(final CustomStyledPlayerView playerView, final String text, final long timeout) {
@@ -478,7 +484,7 @@ class Utils {
     }
 
     public static int normRate(float rate) {
-        return (int)(rate * 100f);
+        return (int) (rate * 100f);
     }
 
     public static boolean switchFrameRate(final PlayerActivity activity, final Uri uri, final boolean play) {
@@ -613,65 +619,65 @@ class Utils {
 
         final String[] suffixes = (video ? supportedExtensionsVideo : supportedExtensionsSubtitle);
 
-//        ChooserDialog chooserDialog = new ChooserDialog(activity, R.style.FileChooserStyle_Dark)
-//                .withStartFile(startPath)
-//                .withFilter(false, false, suffixes)
-//                .withChosenListener(new ChooserDialog.Result() {
-//                    @Override
-//                    public void onChoosePath(String path, File pathFile) {
-//                        activity.releasePlayer();
-//                        Uri uri = DocumentFile.fromFile(pathFile).getUri();
-//                        if (video) {
-//                            activity.mPrefs.setPersistent(true);
-//                            activity.mPrefs.updateMedia(activity, uri, null);
-//                            activity.searchSubtitles();
-//                        } else {
-//                            // Convert subtitles to UTF-8 if necessary
-//                            SubtitleUtils.clearCache(activity);
-//                            uri = SubtitleUtils.convertToUTF(activity, uri);
-//
-//                            activity.mPrefs.updateSubtitle(uri);
-//                        }
-//                        PlayerActivity.focusPlay = true;
-//                        activity.initializePlayer();
-//                    }
-//                })
-//                // to handle the back key pressed or clicked outside the dialog:
-//                .withOnCancelListener(new DialogInterface.OnCancelListener() {
-//                    public void onCancel(DialogInterface dialog) {
-//                        dialog.cancel(); // MUST have
-//                    }
-//                });
-//        chooserDialog
-//                .withOnBackPressedListener(dialog -> chooserDialog.goBack())
-//                .withOnLastBackPressedListener(dialog -> dialog.cancel());
-//        chooserDialog.build().show();
+        ChooserDialog chooserDialog = new ChooserDialog(activity, R.style.FileChooserStyle_Dark)
+                .withStartFile(startPath)
+                .withFilter(false, false, suffixes)
+                .withChosenListener(new ChooserDialog.Result() {
+                    @Override
+                    public void onChoosePath(String path, File pathFile) {
+                        activity.releasePlayer();
+                        Uri uri = DocumentFile.fromFile(pathFile).getUri();
+                        if (video) {
+                            activity.mPrefs.setPersistent(true);
+                            activity.mPrefs.updateMedia(activity, uri, null);
+                            activity.searchSubtitles();
+                        } else {
+                            // Convert subtitles to UTF-8 if necessary
+                            SubtitleUtils.clearCache(activity);
+                            uri = SubtitleUtils.convertToUTF(activity, uri);
 
-        SmbFileChooserDialog.newDialog(activity, "smb://10.10.80.164/", new NtlmPasswordAuthenticator("smb://10.10.80.164/", "share", null, NtlmPasswordAuthenticator.AuthenticationType.NULL))
-                .setResources("select a directory", "choose", "cancel")
-                .setFilter(/*only directories (no files)*/ true, /*don't show hidden files/folders*/ false)
-                .setOnChosenListener((path, file) -> {
-                    String msg = "error";
-                    try{
-                        msg = file.isDirectory() ? "directory" : "file" + " selected: " + path;
-                    } catch(SmbException e){
-                        e.printStackTrace();
+                            activity.mPrefs.updateSubtitle(uri);
+                        }
+                        PlayerActivity.focusPlay = true;
+                        activity.initializePlayer();
                     }
-                    // This is NOT main UI thread. you can NOT access SmbFiles on UI thread.
-                    Handler mainHandler = new Handler(activity.getMainLooper());
-                    String finalMsg = msg;
-                    mainHandler.post(() -> {
-                        Toast.makeText(activity,
-                                finalMsg,
-                                Toast.LENGTH_SHORT)
-                                .show();
-                    });
                 })
-                .setExceptionHandler((exception, id) -> {
-                    Toast.makeText(activity, exception.getMessage(), Toast.LENGTH_LONG).show();
-                    return true;
-                })
-                .show();
+                // to handle the back key pressed or clicked outside the dialog:
+                .withOnCancelListener(new DialogInterface.OnCancelListener() {
+                    public void onCancel(DialogInterface dialog) {
+                        dialog.cancel(); // MUST have
+                    }
+                });
+        chooserDialog
+                .withOnBackPressedListener(dialog -> chooserDialog.goBack())
+                .withOnLastBackPressedListener(dialog -> dialog.cancel());
+        chooserDialog.build().show();
+
+//        SmbFileChooserDialog.newDialog(activity, "10.10.80.164", new NtlmPasswordAuthenticator("share", null))
+//                .setResources("select a directory", "choose", "cancel")
+//                .setFilter(false, false)
+//                .setOnChosenListener((path, file) -> {
+//                    activity.releasePlayer();
+//                    Uri uri = Uri.parse(path);
+//                    if (video) {
+//                        activity.mPrefs.setPersistent(true);
+//                        activity.mPrefs.updateMedia(activity, uri, null);
+//                        activity.searchSubtitles();
+//                    } else {
+//                        // Convert subtitles to UTF-8 if necessary
+//                        SubtitleUtils.clearCache(activity);
+//                        uri = SubtitleUtils.convertToUTF(activity, uri);
+//
+//                        activity.mPrefs.updateSubtitle(uri);
+//                    }
+//                    PlayerActivity.focusPlay = true;
+//                    activity.initializePlayer();
+//                })
+//                .setExceptionHandler((exception, id) -> {
+//                    Toast.makeText(activity, exception.getMessage(), Toast.LENGTH_LONG).show();
+//                    return true;
+//                })
+//                .show();
 
         return true;
     }

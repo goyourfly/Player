@@ -719,7 +719,7 @@ public class PlayerActivity extends Activity {
                         .setNegativeButton("取消", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-
+                                outInfo = null;
                             }
                         })
                         .show();

@@ -103,6 +103,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'androidx.preference:preference:1.2.0'
     implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+    implementation 'io.github.pilgr:paperdb:2.7.2'
     implementation project(path: ':doubletapplayerview')
     implementation project(path: ':android-file-chooser')
     implementation project(path: ':android-smbfile-chooser')

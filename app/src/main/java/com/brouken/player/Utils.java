@@ -18,6 +18,7 @@ import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
@@ -796,5 +797,22 @@ class Utils {
             activity.runOnUiThread(() -> controlView.setExtraAdGroupMarkers(starts, played));
         });
         activity.chaptersThread.start();
+    }
+
+    private static float[] hsv = new float[3];
+    public static int getBrightnessColor(final int r, final int g, final int b, int brightness) {
+        if (brightness > 255) {
+            brightness = 255;
+        }
+        if (brightness < 0) {
+            brightness = 0;
+        }
+        Color.RGBToHSV(r, g, b, hsv);
+        hsv[2] = hsv[2] * brightness * 1F / 255;
+        return Color.HSVToColor(hsv);
+    }
+
+    public static boolean isEmptyColor(int color) {
+        return color == Color.BLACK || color == Color.TRANSPARENT;
     }
 }

@@ -14,14 +14,19 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.UriPermission;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Icon;
 import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
@@ -59,6 +64,7 @@ import android.view.accessibility.CaptioningManager;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -68,6 +74,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.documentfile.provider.DocumentFile;
 
@@ -108,6 +115,8 @@ import com.google.android.exoplayer2.video.VideoDecoderGLSurfaceView;
 import com.google.android.exoplayer2.video.VideoFrameMetadataListener;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.bouncycastle.util.IPAddress;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -115,6 +124,11 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -227,6 +241,13 @@ public class PlayerActivity extends Activity {
     };
 
     private Bitmap outBitmap;
+    private WLEDSettingsActivity.WledInfo outInfo;
+    private DatagramSocket clientSocket;
+    private List<Rect> outWLEDList;
+    private byte[] outData;
+    private InetAddress outIpAddress;
+    private Paint paint = new Paint();
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -597,6 +618,148 @@ public class PlayerActivity extends Activity {
             return true;
         });
 
+        final ImageButton exoLedConfig = playerView.findViewById(R.id.exo_led_config);
+        exoLedConfig.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (outBitmap == null)
+                    return;
+                Intent intent = new Intent(PlayerActivity.this, WLEDSettingsActivity.class);
+                WLEDSettingsActivity.bitmap = outBitmap;
+                startActivityForResult(intent, REQUEST_SETTINGS);
+            }
+        });
+        final ImageButton exoLedSearch = playerView.findViewById(R.id.exo_led_search);
+        exoLedSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (outBitmap == null)
+                    return;
+                Rect outRect = new Rect();
+                // left
+                out:
+                for (int x = 0; x < outBitmap.getWidth(); x++) {
+                    for (int y = 0; y < outBitmap.getHeight(); y++) {
+                        int color = outBitmap.getPixel(x, y);
+                        if (!Utils.isEmptyColor(color)) {
+                            outRect.left = x;
+                            break out;
+                        }
+                    }
+                }
+                // top
+                out:
+                for (int y = 0; y < outBitmap.getHeight(); y++) {
+                    for (int x = 0; x < outBitmap.getWidth(); x++) {
+                        int color = outBitmap.getPixel(x, y);
+                        if (!Utils.isEmptyColor(color)) {
+                            outRect.top = y;
+                            break out;
+                        }
+                    }
+                }
+                // right
+                out:
+                for (int x = outBitmap.getWidth() - 1; x >= 0; x--) {
+                    for (int y = 0; y < outBitmap.getHeight(); y++) {
+                        int color = outBitmap.getPixel(x, y);
+                        if (!Utils.isEmptyColor(color)) {
+                            outRect.right = x;
+                            break out;
+                        }
+                    }
+                }
+                // bottom
+                out:
+                for (int y = outBitmap.getHeight() - 1; y >= 0; y--) {
+                    for (int x = 0; x < outBitmap.getWidth(); x++) {
+                        int color = outBitmap.getPixel(x, y);
+                        if (!Utils.isEmptyColor(color)) {
+                            outRect.bottom = y;
+                            break out;
+                        }
+                    }
+                }
+                Log.d("BitmapBound", "Bitmap:" + outBitmap.getWidth() + "," + outBitmap.getHeight() + ",outRect=" + outRect);
+
+
+                WLEDSettingsActivity.WledInfo info = WLEDSettingsActivity.read();
+                info.leftPadding = outRect.left;
+                info.topPadding = outRect.top;
+                info.rightPadding = outRect.right;
+                info.bottomPadding = outRect.bottom;
+
+                List<Rect> list = PreviewView.measureRect(outBitmap.getWidth(), outBitmap.getHeight(),
+                        info.leftNum, info.topNum, info.rightNum, info.bottomNum,
+                        info.leftPadding, info.topPadding, info.rightPadding, info.bottomPadding,
+                        info.leftOffset, info.topOffset, info.rightOffset, info.bottomOffset);
+                Bitmap bitmap = Bitmap.createBitmap(outBitmap);
+                Canvas canvas = new Canvas(bitmap);
+                for (int i = 0; i < list.size(); i++) {
+                    Rect rect = list.get(i);
+                    int[] pixels = new int[rect.width() * rect.height()];
+                    Log.d("BitmapBound", "Plen:" + i + "," + pixels.length + ",l:" + list.size());
+                    if (pixels.length == 0) {
+                        continue;
+                    }
+//                    outBitmap.getPixels(pixels, 0, rect.width(), rect.left, rect.top, rect.width(), rect.height());
+//                    // int color = bitmap.getPixel(rect.centerX(),rect.centerY());
+//                    int r = Color.red(pixels[0]);
+//                    int g = Color.green(pixels[0]);
+//                    int b = Color.blue(pixels[0]);
+//                    int count = rect.width() * rect.height();
+//                    for (int x = 1; x < count; x++) {
+//                        r += Color.red(pixels[x]);
+//                        g += Color.green(pixels[x]);
+//                        b += Color.blue(pixels[x]);
+//                    }
+//                    r = r / count;
+//                    g = g / count;
+//                    b = b / count;
+//
+//                    int newColor = Utils.getBrightnessColor(r, g, b, outInfo.brightness);
+//                    r = Color.red(newColor);
+//                    g = Color.green(newColor);
+//                    b = Color.blue(newColor);
+//                    paint.setStrokeWidth(5);
+//                    paint.setStyle(Paint.Style.STROKE);
+//                    paint.setColor(Color.RED);
+//                    canvas.drawRect(rect, paint);
+                }
+
+                ImageView imageView = new ImageButton(PlayerActivity.this);
+                imageView.setImageBitmap(bitmap);
+                imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+//                ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(1000,1000);
+//                imageView.setLayoutParams(params);
+                new AlertDialog.Builder(PlayerActivity.this)
+                        .setTitle("自动校准位置")
+                        .setView(imageView)
+                        .setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                WLEDSettingsActivity.save(info);
+                                outInfo = null;
+                            }
+                        })
+                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                            }
+                        })
+                        .show();
+
+//                try {
+//                    FileOutputStream outputStream = new FileOutputStream(new File(getCacheDir(), "test.jpg"));
+//                    outBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+//                    outputStream.close();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+            }
+        });
+
         updateButtons(false);
 
         final HorizontalScrollView horizontalScrollView = (HorizontalScrollView) getLayoutInflater().inflate(R.layout.controls, null);
@@ -707,6 +870,11 @@ public class PlayerActivity extends Activity {
             Utils.toggleSystemUi(this, playerView, true);
         }
         initializePlayer();
+        try {
+            clientSocket = new DatagramSocket();
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -730,6 +898,9 @@ public class PlayerActivity extends Activity {
         }
         playerView.setCustomErrorMessage(null);
         releasePlayer(false);
+        if (clientSocket != null) {
+            clientSocket.close();
+        }
     }
 
     @Override
@@ -1189,17 +1360,64 @@ public class PlayerActivity extends Activity {
                 if (surfaceView == null)
                     return;
                 if (outBitmap == null) {
-                    outBitmap = Bitmap.createBitmap(surfaceView.getWidth()/4, surfaceView.getHeight()/4, Bitmap.Config.ARGB_8888);
+                    int width = mediaFormat.getInteger(MediaFormat.KEY_WIDTH);
+                    int height = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
+                    outBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                }
+                if (outInfo == null && outBitmap != null) {
+                    outInfo = WLEDSettingsActivity.read();
+                    outWLEDList = PreviewView.measureRect(outBitmap.getWidth(), outBitmap.getHeight(),
+                            outInfo.leftNum, outInfo.topNum, outInfo.rightNum, outInfo.bottomNum,
+                            outInfo.leftPadding, outInfo.topPadding, outInfo.rightPadding, outInfo.bottomPadding,
+                            outInfo.leftOffset, outInfo.topOffset, outInfo.rightOffset, outInfo.bottomOffset);
+                    outData = new byte[2 + outWLEDList.size() * 4];
+                    outData[0] = 0x01;
+                    outData[1] = 0x05;
+                    try {
+                        outIpAddress = InetAddress.getByName(outInfo.ip);
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                    }
                 }
                 surfaceView.getBitmap(outBitmap);
 
-//                try {
-//                    FileOutputStream outputStream = new FileOutputStream(new File(getCacheDir() ,"test.jpg"));
-//                    outBitmap.compress(Bitmap.CompressFormat.JPEG,100,outputStream);
-//                    outputStream.close();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
+                try {
+                    for (int i = 0; i < outWLEDList.size(); i++) {
+                        Rect rect = outWLEDList.get(i);
+                        int[] pixels = new int[rect.width() * rect.height()];
+                        outBitmap.getPixels(pixels, 0, rect.width(), rect.left, rect.top, rect.width(), rect.height());
+                        // int color = bitmap.getPixel(rect.centerX(),rect.centerY());
+                        int r = Color.red(pixels[0]);
+                        int g = Color.green(pixels[0]);
+                        int b = Color.blue(pixels[0]);
+                        int count = rect.width() * rect.height();
+                        for (int x = 1; x < count; x++) {
+                            r += Color.red(pixels[x]);
+                            g += Color.green(pixels[x]);
+                            b += Color.blue(pixels[x]);
+                        }
+                        r = r / count;
+                        g = g / count;
+                        b = b / count;
+
+                        int newColor = Utils.getBrightnessColor(r, g, b, outInfo.brightness);
+                        r = Color.red(newColor);
+                        g = Color.green(newColor);
+                        b = Color.blue(newColor);
+
+                        outData[2 + i * 4] = (byte) i;
+                        outData[3 + i * 4] = (byte) r;
+                        outData[4 + i * 4] = (byte) g;
+                        outData[5 + i * 4] = (byte) b;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                try {
+                    clientSocket.send(new DatagramPacket(outData, outData.length, outIpAddress, outInfo.port));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 Log.d("fkdafjl", "TimeCost:" + (System.currentTimeMillis() - t1));
             }
         });

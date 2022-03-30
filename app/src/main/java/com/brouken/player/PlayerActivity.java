@@ -686,8 +686,8 @@ public class PlayerActivity extends Activity {
                 WLEDSettingsActivity.WledInfo info = WLEDSettingsActivity.read();
                 info.leftPadding = outRect.left;
                 info.topPadding = outRect.top;
-                info.rightPadding = outRect.right;
-                info.bottomPadding = outRect.bottom;
+                info.rightPadding = outBitmap.getWidth() - 5 - outRect.right;
+                info.bottomPadding = outBitmap.getWidth() - 5- outRect.bottom;
 
                 List<Rect> list = PreviewView.measureRect(outBitmap.getWidth(), outBitmap.getHeight(),
                         info.leftNum, info.topNum, info.rightNum, info.bottomNum,
@@ -697,7 +697,7 @@ public class PlayerActivity extends Activity {
                 Canvas canvas = new Canvas(bitmap);
                 for (int i = 0; i < list.size(); i++) {
                     Rect rect = list.get(i);
-                    if (rect.width() * rect.height() == 0) {
+                    if (rect.width() <= 0 || rect.height() <= 0) {
                         continue;
                     }
                     int[] pixels = new int[rect.width() * rect.height()];

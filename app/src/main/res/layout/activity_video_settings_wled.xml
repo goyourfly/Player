@@ -21,8 +21,8 @@
         android:id="@+id/cb_debug"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Debug"
         android:layout_marginEnd="20dp"
+        android:text="Debug"
         app:layout_constraintBottom_toBottomOf="@id/iv_done"
         app:layout_constraintRight_toLeftOf="@id/iv_done"
         app:layout_constraintTop_toTopOf="parent" />
@@ -37,286 +37,235 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
-        android:id="@+id/et_ip_address"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Ip Address"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toLeftOf="@id/et_port"
-        app:layout_constraintTop_toBottomOf="@id/iv_back" />
-
-    <EditText
-        android:id="@+id/et_port"
-        android:layout_width="100dp"
-        android:layout_height="wrap_content"
-        android:hint="Port"
-        android:inputType="number"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/iv_back" />
-
-
-    <com.brouken.player.PreviewView
-        android:id="@+id/v_preview"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="#33000000"
-        android:padding="0dp"
-        app:layout_constraintDimensionRatio="h,16:9"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/et_ip_address" />
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/v_preview">
+        app:layout_constraintTop_toBottomOf="@id/iv_back">
 
-        <LinearLayout
+
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/et_ip_address"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="Ip Address"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toLeftOf="@id/et_port"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <EditText
+                android:id="@+id/et_port"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:hint="Port"
+                android:inputType="number"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/v_preview"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:background="#33000000"
+                android:padding="0dp"
+                app:layout_constraintDimensionRatio="h,16:9"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/et_ip_address" />
+
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                app:layout_constraintTop_toBottomOf="@id/v_preview">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_left_num"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Left num"
-                        android:inputType="number"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_top_num"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Top num"
-                        android:inputType="number"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </com.google.android.material.textfield.TextInputLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_right_num"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Right num"
-                        android:inputType="number"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_bottom_num"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Bottom num"
-                        android:inputType="number"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </com.google.android.material.textfield.TextInputLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_left_padding"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Left padding"
-                        android:inputType="number"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_top_padding"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Top padding"
-                        android:inputType="number"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </com.google.android.material.textfield.TextInputLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_right_padding"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Right padding"
-                        android:inputType="number"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_bottom_padding"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Bottom padding"
-                        android:inputType="number"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </com.google.android.material.textfield.TextInputLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_left_offset"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Left offset"
-                        android:inputType="number"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_top_offset"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Top offset"
-                        android:inputType="number"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_right_offset"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Right offset"
-                        android:inputType="number"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1">
-
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_bottom_offset"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Bottom offset"
-                        android:inputType="number"
-                        app:layout_constraintRight_toRightOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-                </com.google.android.material.textfield.TextInputLayout>
-            </LinearLayout>
-
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/et_brightness"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:hint="Brightness"
-                    android:inputType="number"
-                    app:layout_constraintRight_toRightOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="horizontal">
 
-        </LinearLayout>
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_left_num"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Left num"
+                            android:inputType="number"
+                            app:layout_constraintRight_toRightOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_top_num"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Top num"
+                            android:inputType="number"
+                            app:layout_constraintRight_toRightOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_right_num"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Right num"
+                            android:inputType="number"
+                            app:layout_constraintRight_toRightOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_bottom_num"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Bottom num"
+                            android:inputType="number"
+                            app:layout_constraintRight_toRightOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_left_margin"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Left margin"
+                            android:inputType="number"
+                            app:layout_constraintRight_toRightOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_top_margin"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Top margin"
+                            android:inputType="number"
+                            app:layout_constraintRight_toRightOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_right_margin"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Right margin"
+                            android:inputType="number"
+                            app:layout_constraintRight_toRightOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1">
+
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_bottom_margin"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Bottom margin"
+                            android:inputType="number"
+                            app:layout_constraintRight_toRightOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_brightness"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:hint="Brightness"
+                        android:inputType="number"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_stroke_width"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:hint="Stroke width"
+                        android:inputType="number"
+                        app:layout_constraintRight_toRightOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

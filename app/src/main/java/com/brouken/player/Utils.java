@@ -19,6 +19,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
@@ -814,5 +815,48 @@ class Utils {
 
     public static boolean isEmptyColor(int color) {
         return color == Color.BLACK || color == Color.TRANSPARENT;
+    }
+
+    public static List<Rect> measureRect(int w, int h, int leftNum, int topNum, int rightNum, int bottomNum,
+                                         int leftMargin, int topMargin, int rightMargin, int bottomMargin,
+                                         int strokeWidth) {
+        List<Rect> list = new ArrayList<>();
+        // left
+        if (leftNum > 0) {
+            float sampleSize = h * 1F / leftNum;
+            for (int i = leftNum - 1; i >= 0; i--) {
+                int x = leftMargin;
+                int y = (int) (i * sampleSize);
+                list.add(new Rect(x, y, (int) (x + strokeWidth), (int) (y + sampleSize)));
+            }
+        }
+        // top
+        if (topNum > 0) {
+            float sampleSize = w * 1F / topNum;
+            for (int i = 0; i < topNum; i++) {
+                int x = (int) (sampleSize * i);
+                int y = topMargin;
+                list.add(new Rect(x, y, (int)(x + sampleSize), (int)(y + strokeWidth)));
+            }
+        }
+        // right
+        if (rightNum > 0) {
+            float sampleSize = h * 1F / rightNum;
+            for (int i = 0; i < rightNum; i++) {
+                int x = (int) (w - strokeWidth - 1 - rightMargin);
+                int y = (int) (i * sampleSize);
+                list.add(new Rect(x, y, (int)(x + strokeWidth), (int)(y + sampleSize)));
+            }
+        }
+        // bottom
+        if (bottomNum > 0) {
+            float sampleSize = w * 1F / bottomNum;
+            for (int i = bottomNum - 1; i >= 0; i--) {
+                int x = (int) (sampleSize * i);
+                int y = (int) (h - strokeWidth - 1 - bottomMargin);
+                list.add(new Rect(x, y, (int)(x + sampleSize), (int)(y + strokeWidth)));
+            }
+        }
+        return list;
     }
 }

@@ -56,6 +56,12 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    // conflicts with Android dependencies
+    configurations {
+        all*.exclude group: "xmlpull", module: "xmlpull"
+        all*.exclude group: "org.apache.commons", module: "commons-compress"
+        all*.exclude group: "com.thoughtworks.xstream", module: "commons-compress"
+    }
     lint {
         disable 'MissingTranslation'
     }
@@ -104,6 +110,8 @@ dependencies {
     implementation 'androidx.preference:preference:1.2.0'
     implementation 'com.squareup.okhttp3:okhttp:4.9.3'
     implementation 'io.github.pilgr:paperdb:2.7.2'
+    api group: 'org.boofcv', name: 'boofcv-core', version: '0.31'
+    api group: 'org.boofcv', name: 'boofcv-android', version: '0.31'
     implementation project(path: ':doubletapplayerview')
     implementation project(path: ':android-file-chooser')
     implementation project(path: ':android-smbfile-chooser')

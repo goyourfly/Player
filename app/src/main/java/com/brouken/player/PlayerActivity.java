@@ -135,7 +135,23 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import boofcv.abst.denoise.FactoryImageDenoise;
+import boofcv.abst.denoise.WaveletDenoiseFilter;
+import boofcv.alg.filter.binary.BinaryImageOps;
+import boofcv.alg.filter.binary.Contour;
+import boofcv.alg.filter.binary.GThresholdImageOps;
+import boofcv.alg.misc.ImageStatistics;
+import boofcv.alg.misc.PixelMath;
+import boofcv.android.ConvertBitmap;
+import boofcv.struct.ConfigLength;
+import boofcv.struct.ConnectRule;
+import boofcv.struct.image.GrayU8;
 
 public class PlayerActivity extends Activity {
 
@@ -247,6 +263,8 @@ public class PlayerActivity extends Activity {
     private byte[] outData;
     private InetAddress outIpAddress;
     private Paint paint = new Paint();
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private AtomicBoolean isBusy = new AtomicBoolean(false);
 
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -635,57 +653,24 @@ public class PlayerActivity extends Activity {
             public void onClick(View view) {
                 if (outBitmap == null)
                     return;
-                Bitmap bitmap = Utils.bitmapThreshold2(outBitmap);
-                bitmap = Utils.bitmapRemoveNoisy(bitmap);
-                int left = 0;
-                int top = 0;
-                int right = 0;
-                int bottom = 0;
-                // left
-                out:
-                for (int x = 0; x < bitmap.getWidth(); x++) {
-                    for (int y = 0; y < bitmap.getHeight(); y++) {
-                        int color = bitmap.getPixel(x, y);
-                        if (!Utils.isEmptyColor(color)) {
-                            left = x;
-                            break out;
-                        }
-                    }
-                }
-                // top
-                out:
-                for (int y = 0; y < bitmap.getHeight(); y++) {
-                    for (int x = 0; x < bitmap.getWidth(); x++) {
-                        int color = bitmap.getPixel(x, y);
-                        if (!Utils.isEmptyColor(color)) {
-                            top = y;
-                            break out;
-                        }
-                    }
-                }
-                // right
-                out:
-                for (int x = bitmap.getWidth() - 1; x >= 0; x--) {
-                    for (int y = 0; y < bitmap.getHeight(); y++) {
-                        int color = bitmap.getPixel(x, y);
-                        if (!Utils.isEmptyColor(color)) {
-                            right = x;
-                            break out;
-                        }
-                    }
-                }
-                // bottom
-                out:
-                for (int y = bitmap.getHeight() - 1; y >= 0; y--) {
-                    for (int x = 0; x < bitmap.getWidth(); x++) {
-                        int color = bitmap.getPixel(x, y);
-                        if (!Utils.isEmptyColor(color)) {
-                            bottom = y;
-                            break out;
-                        }
-                    }
-                }
-                Log.d("BitmapBound", "Bitmap:" + bitmap.getWidth() + "," + bitmap.getHeight() + ",outRect=" + left + "," + top + "," + right + "," + bottom);
+                GrayU8 gray = ConvertBitmap.bitmapToGray(outBitmap, (GrayU8)null, null);
+                GrayU8 out = new GrayU8(gray.width, gray.height);
+                GThresholdImageOps.localGaussian(gray,out, ConfigLength.fixed(85.0),1.9,false,null,null);
+//                GThresholdImageOps.threshold(gray, out, ImageStatistics.mean(gray), false);
+//                GThresholdImageOps.threshold(gray, out, GThresholdImageOps.computeOtsu(gray, 0, 255), false);
+
+                GrayU8 filtered = BinaryImageOps.erode8(out, 2, null);
+                filtered = BinaryImageOps.dilate8(filtered, 2, null);
+//                BinaryImageOps.thin()
+
+                List<Contour> list = BinaryImageOps.contourExternal(filtered, ConnectRule.FOUR);
+
+                PixelMath.multiply(filtered,255.0,filtered);
+                Bitmap bitmap = Bitmap.createBitmap(outBitmap);
+                ConvertBitmap.grayToBitmap(filtered,bitmap,null);
+
+
+//                Log.d("BitmapBound", "Bitmap:" + bitmap.getWidth() + "," + bitmap.getHeight() + ",outRect=" + left + "," + top + "," + right + "," + bottom);
 
                 Bitmap bitmap2 = Bitmap.createBitmap(bitmap);
                 Canvas canvas = new Canvas(bitmap2);
@@ -693,15 +678,15 @@ public class PlayerActivity extends Activity {
                 paint.setStrokeWidth(5);
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setColor(Color.GREEN);
-                canvas.drawRect(new Rect(left,top,right,bottom), paint);
+//                canvas.drawRect(new Rect(left, top, right, bottom), paint);
 
-                ImageView imageView = new ImageButton(PlayerActivity.this);
-                imageView.setImageBitmap(bitmap2);
+                ImageView imageView = new ImageView(PlayerActivity.this);
+                imageView.setImageBitmap(bitmap);
                 imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                int finalLeft = left;
-                int finalTop = top;
-                int finalRight = right;
-                int finalBottom = bottom;
+//                int finalLeft = left;
+//                int finalTop = top;
+//                int finalRight = right;
+//                int finalBottom = bottom;
                 new AlertDialog.Builder(PlayerActivity.this)
                         .setTitle("自动校准位置")
                         .setView(imageView)
@@ -709,10 +694,10 @@ public class PlayerActivity extends Activity {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 WLEDSettingsActivity.WledInfo info = WLEDSettingsActivity.read();
-                                info.leftMargin = finalLeft;
-                                info.topMargin = finalTop;
-                                info.rightMargin = bitmap2.getWidth() - finalRight;
-                                info.bottomMargin = bitmap2.getHeight() - finalBottom;
+//                                info.leftMargin = finalLeft;
+//                                info.topMargin = finalTop;
+//                                info.rightMargin = bitmap2.getWidth() - finalRight;
+//                                info.bottomMargin = bitmap2.getHeight() - finalBottom;
                                 WLEDSettingsActivity.save(info);
                                 outInfo = null;
                             }
@@ -914,6 +899,7 @@ public class PlayerActivity extends Activity {
         super.onNewIntent(intent);
 
         if (intent != null) {
+            outBitmap = null;
             final String action = intent.getAction();
             final String type = intent.getType();
             final Uri uri = intent.getData();
@@ -1174,6 +1160,7 @@ public class PlayerActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        outBitmap = null;
         try {
             if (restoreOrientationLock) {
                 Settings.System.putInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0);
@@ -1330,74 +1317,85 @@ public class PlayerActivity extends Activity {
         player.setVideoFrameMetadataListener(new VideoFrameMetadataListener() {
             @Override
             public void onVideoFrameAboutToBeRendered(long l, long l1, Format format, @Nullable MediaFormat mediaFormat) {
-                long t1 = System.currentTimeMillis();
-                TextureView surfaceView = (TextureView) playerView.getVideoSurfaceView();
-                if (surfaceView == null)
+                if (isBusy.get()){
                     return;
-                if (outBitmap == null) {
-                    int width = mediaFormat.getInteger(MediaFormat.KEY_WIDTH);
-                    int height = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
-                    int scale = 8;
-                    if (width / scale < 256 || height/scale < 256){
-                        scale = 4;
-                    }
-                    outBitmap = Bitmap.createBitmap(width/scale, height/scale, Bitmap.Config.ARGB_8888);
                 }
-                if (outInfo == null && outBitmap != null) {
-                    outInfo = WLEDSettingsActivity.read();
-                    outWLEDList = Utils.measureRect(outBitmap.getWidth(),outBitmap.getHeight(),
-                            outInfo.leftNum,outInfo.topNum,outInfo.rightNum,outInfo.bottomNum,
-                            outInfo.leftMargin,outInfo.topMargin,outInfo.rightMargin,outInfo.bottomMargin,
-                            outInfo.strokeWidth);
-                    outData = new byte[2 + outWLEDList.size() * 4];
-                    outData[0] = 0x01;
-                    outData[1] = 0x05;
-                    try {
-                        outIpAddress = InetAddress.getByName(outInfo.ip);
-                    } catch (UnknownHostException e) {
-                        e.printStackTrace();
-                    }
-                }
-                surfaceView.getBitmap(outBitmap);
-
-                try {
-                    for (int i = 0; i < outWLEDList.size(); i++) {
-                        Rect rect = outWLEDList.get(i);
-                        int[] pixels = new int[rect.width() * rect.height()];
-                        outBitmap.getPixels(pixels, 0, rect.width(), rect.left, rect.top, rect.width(), rect.height());
-                        // int color = bitmap.getPixel(rect.centerX(),rect.centerY());
-                        int r = Color.red(pixels[0]);
-                        int g = Color.green(pixels[0]);
-                        int b = Color.blue(pixels[0]);
-                        int count = rect.width() * rect.height();
-                        for (int x = 1; x < count; x++) {
-                            r += Color.red(pixels[x]);
-                            g += Color.green(pixels[x]);
-                            b += Color.blue(pixels[x]);
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        isBusy.set(true);
+                        long t1 = System.currentTimeMillis();
+                        TextureView surfaceView = (TextureView) playerView.getVideoSurfaceView();
+                        if (surfaceView == null)
+                            return;
+                        if (outBitmap == null) {
+                            int width = mediaFormat.getInteger(MediaFormat.KEY_WIDTH);
+                            int height = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
+                            int scale = 1;
+//                            int scale = 8;
+//                            if (width / scale < 256 || height / scale < 256) {
+//                                scale = 4;
+//                            }
+                            outBitmap = Bitmap.createBitmap(width / scale, height / scale, Bitmap.Config.ARGB_8888);
                         }
-                        r = r / count;
-                        g = g / count;
-                        b = b / count;
+                        if (outInfo == null && outBitmap != null) {
+                            outInfo = WLEDSettingsActivity.read();
+                            outWLEDList = Utils.measureRect(outBitmap.getWidth(), outBitmap.getHeight(),
+                                    outInfo.leftNum, outInfo.topNum, outInfo.rightNum, outInfo.bottomNum,
+                                    outInfo.leftMargin, outInfo.topMargin, outInfo.rightMargin, outInfo.bottomMargin,
+                                    outInfo.strokeWidth);
+                            outData = new byte[2 + outWLEDList.size() * 4];
+                            outData[0] = 0x01;
+                            outData[1] = 0x05;
+                            try {
+                                outIpAddress = InetAddress.getByName(outInfo.ip);
+                            } catch (UnknownHostException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        surfaceView.getBitmap(outBitmap);
 
-                        int newColor = Utils.getBrightnessColor(r, g, b, outInfo.brightness);
-                        r = Color.red(newColor);
-                        g = Color.green(newColor);
-                        b = Color.blue(newColor);
+                        try {
+                            for (int i = 0; i < outWLEDList.size(); i++) {
+                                Rect rect = outWLEDList.get(i);
+                                int[] pixels = new int[rect.width() * rect.height()];
+                                outBitmap.getPixels(pixels, 0, rect.width(), rect.left, rect.top, rect.width(), rect.height());
+                                // int color = bitmap.getPixel(rect.centerX(),rect.centerY());
+                                int r = Color.red(pixels[0]);
+                                int g = Color.green(pixels[0]);
+                                int b = Color.blue(pixels[0]);
+                                int count = rect.width() * rect.height();
+                                for (int x = 1; x < count; x++) {
+                                    r += Color.red(pixels[x]);
+                                    g += Color.green(pixels[x]);
+                                    b += Color.blue(pixels[x]);
+                                }
+                                r = r / count;
+                                g = g / count;
+                                b = b / count;
 
-                        outData[2 + i * 4] = (byte) i;
-                        outData[3 + i * 4] = (byte) r;
-                        outData[4 + i * 4] = (byte) g;
-                        outData[5 + i * 4] = (byte) b;
+                                int newColor = Utils.getBrightnessColor(r, g, b, outInfo.brightness);
+                                r = Color.red(newColor);
+                                g = Color.green(newColor);
+                                b = Color.blue(newColor);
+
+                                outData[2 + i * 4] = (byte) i;
+                                outData[3 + i * 4] = (byte) r;
+                                outData[4 + i * 4] = (byte) g;
+                                outData[5 + i * 4] = (byte) b;
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        try {
+                            clientSocket.send(new DatagramPacket(outData, outData.length, outIpAddress, outInfo.port));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        Log.d("fkdafjl", "TimeCost:" + (System.currentTimeMillis() - t1));
+                        isBusy.set(false);
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                try {
-                    clientSocket.send(new DatagramPacket(outData, outData.length, outIpAddress, outInfo.port));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                Log.d("fkdafjl", "TimeCost:" + (System.currentTimeMillis() - t1));
+                });
             }
         });
 

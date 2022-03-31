@@ -671,12 +671,16 @@ public class PlayerActivity extends Activity {
                             @Override
                             public void run() {
                                 dialog.dismiss();
+                                FrameLayout frameLayout = new FrameLayout(PlayerActivity.this);
                                 ImageView imageView = new ImageView(PlayerActivity.this);
                                 imageView.setImageBitmap(bitmap);
                                 imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                                FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT,FrameLayout.LayoutParams.WRAP_CONTENT);
+                                params.topMargin = 20 * 3;
+                                frameLayout.addView(imageView,params);
                                 new AlertDialog.Builder(PlayerActivity.this)
                                         .setTitle("自动校准位置")
-                                        .setView(imageView)
+                                        .setView(frameLayout)
                                         .setPositiveButton("确认", new DialogInterface.OnClickListener() {
                                             @Override
                                             public void onClick(DialogInterface dialogInterface, int i) {

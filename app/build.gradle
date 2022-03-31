@@ -21,25 +21,25 @@ android {
             //proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    flavorDimensions "targetSdk", "distribution"
-    productFlavors {
-        latest {
-            dimension "targetSdk"
-        }
-        legacy {
-            dimension "targetSdk"
-            applicationIdSuffix ".legacy"
-            versionNameSuffix "-legacy"
-            targetSdkVersion 29
-        }
-
-        universal {
-            dimension "distribution"
-        }
-        amazon {
-            dimension "distribution"
-        }
-    }
+//    flavorDimensions "targetSdk", "distribution"
+//    productFlavors {
+//        latest {
+//            dimension "targetSdk"
+//        }
+//        legacy {
+//            dimension "targetSdk"
+//            applicationIdSuffix ".legacy"
+//            versionNameSuffix "-legacy"
+//            targetSdkVersion 29
+//        }
+//
+//        universal {
+//            dimension "distribution"
+//        }
+//        amazon {
+//            dimension "distribution"
+//        }
+//    }
     variantFilter { variant ->
         def names = variant.flavors*.name
         if (names.contains("legacy") && names.contains("amazon")) {

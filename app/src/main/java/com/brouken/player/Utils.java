@@ -69,6 +69,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import boofcv.struct.image.GrayU8;
 import jcifs.smb.NtlmPasswordAuthenticator;
 import jcifs.smb.SmbException;
 
@@ -802,6 +803,7 @@ class Utils {
     }
 
     private static float[] hsv = new float[3];
+
     public static int getBrightnessColor(final int r, final int g, final int b, int brightness) {
         if (brightness > 255) {
             brightness = 255;
@@ -837,7 +839,7 @@ class Utils {
             for (int i = 0; i < topNum; i++) {
                 int x = (int) (sampleSize * i);
                 int y = topMargin;
-                list.add(new Rect(x, y, (int)(x + sampleSize), (int)(y + strokeWidth)));
+                list.add(new Rect(x, y, (int) (x + sampleSize), (int) (y + strokeWidth)));
             }
         }
         // right
@@ -846,7 +848,7 @@ class Utils {
             for (int i = 0; i < rightNum; i++) {
                 int x = (int) (w - strokeWidth - 1 - rightMargin);
                 int y = (int) (i * sampleSize);
-                list.add(new Rect(x, y, (int)(x + strokeWidth), (int)(y + sampleSize)));
+                list.add(new Rect(x, y, (int) (x + strokeWidth), (int) (y + sampleSize)));
             }
         }
         // bottom
@@ -855,138 +857,62 @@ class Utils {
             for (int i = bottomNum - 1; i >= 0; i--) {
                 int x = (int) (sampleSize * i);
                 int y = (int) (h - strokeWidth - 1 - bottomMargin);
-                list.add(new Rect(x, y, (int)(x + sampleSize), (int)(y + strokeWidth)));
+                list.add(new Rect(x, y, (int) (x + sampleSize), (int) (y + strokeWidth)));
             }
         }
         return list;
     }
 
-    public static Bitmap bitmapThreshold(Bitmap bm) {
-        int width = bm.getWidth();//原图像宽度
-        int height = bm.getHeight();//原图像高度
-        int color;//用来存储某个像素点的颜色值
-        int r, g, b, a;//红，绿，蓝，透明度
-        //创建空白图像，宽度等于原图宽度，高度等于原图高度，用ARGB_8888渲染，这个不用了解，这样写就行了
-        Bitmap bmp = Bitmap.createBitmap(width, height
-                , Bitmap.Config.ARGB_8888);
 
-        int[] oldPx = new int[width * height];//用来存储原图每个像素点的颜色信息
-        int[] newPx = new int[width * height];//用来处理处理之后的每个像素点的颜色信息
-        /**
-         * 第一个参数oldPix[]:用来接收（存储）bm这个图像中像素点颜色信息的数组
-         * 第二个参数offset:oldPix[]数组中第一个接收颜色信息的下标值
-         * 第三个参数width:在行之间跳过像素的条目数，必须大于等于图像每行的像素数
-         * 第四个参数x:从图像bm中读取的第一个像素的横坐标
-         * 第五个参数y:从图像bm中读取的第一个像素的纵坐标
-         * 第六个参数width:每行需要读取的像素个数
-         * 第七个参数height:需要读取的行总数
-         */
-        bm.getPixels(oldPx, 0, width, 0, 0, width, height);//获取原图中的像素信息
-
-        for (int i = 0; i < width * height; i++) {//循环处理图像中每个像素点的颜色值
-            color = oldPx[i];//取得某个点的像素值
-            r = Color.red(color);//取得此像素点的r(红色)分量
-            g = Color.green(color);//取得此像素点的g(绿色)分量
-            b = Color.blue(color);//取得此像素点的b(蓝色分量)
-            a = Color.alpha(color);//取得此像素点的a通道值
-
-            //此公式将r,g,b运算获得灰度值，经验公式不需要理解
-            int gray = (int)((float)r*0.3+(float)g*0.59+(float)b*0.11);
-            //下面前两个if用来做溢出处理，防止灰度公式得到到灰度超出范围（0-255）
-            if(gray > 255) {
-                gray = 255;
-            }
-
-            if(gray < 0) {
-                gray = 0;
-            }
-
-            if (gray != 0) {//如果某像素的灰度值不是0(黑色)就将其置为255（白色）
-                gray = 255;
-            }
-
-            newPx[i] = Color.argb(a,gray,gray,gray);//将处理后的透明度（没变），r,g,b分量重新合成颜色值并将其存储在数组中
-        }
-        /**
-         * 第一个参数newPix[]:需要赋给新图像的颜色数组//The colors to write the bitmap
-         * 第二个参数offset:newPix[]数组中第一个需要设置给图像颜色的下标值//The index of the first color to read from pixels[]
-         * 第三个参数width:在行之间跳过像素的条目数//The number of colors in pixels[] to skip between rows.
-         * Normally this value will be the same as the width of the bitmap,but it can be larger(or negative).
-         * 第四个参数x:从图像bm中读取的第一个像素的横坐标//The x coordinate of the first pixels to write to in the bitmap.
-         * 第五个参数y:从图像bm中读取的第一个像素的纵坐标//The y coordinate of the first pixels to write to in the bitmap.
-         * 第六个参数width:每行需要读取的像素个数The number of colors to copy from pixels[] per row.
-         * 第七个参数height:需要读取的行总数//The number of rows to write to the bitmap.
-         */
-        bmp.setPixels(newPx, 0, width, 0, 0, width, height);//将处理后的像素信息赋给新图
-        return bmp;//返回处理后的图像
-    }
-
-
-    public static Bitmap bitmapThreshold2(Bitmap bm) {
-        int width = bm.getWidth();
-        int height = bm.getHeight();
-        int color;
-        int r, g, b, a;
-        Bitmap bmp = Bitmap.createBitmap(width, height
-                , Bitmap.Config.ARGB_8888);
-
-        int[] oldPx = new int[width * height];
-        int[] newPx = new int[width * height];
-        bm.getPixels(oldPx, 0, width, 0, 0, width, height);
-
-        for (int i = 0; i < width * height; i++) {
-            color = oldPx[i];
-            r = Color.red(color);
-            g = Color.green(color);
-            b = Color.blue(color);
-            a = Color.alpha(color);
-
-            int gray = (int)((float)r*0.3+(float)g*0.59+(float)b*0.11);
-
-            if(gray > 100) {
-                gray = 255;
-            } else {
-                gray = 0;
-            }
-
-            newPx[i] = Color.argb(a,gray,gray,gray);
-        }
-        bmp.setPixels(newPx, 0, width, 0, 0, width, height);
-        return bmp;
-    }
-
-    public static Bitmap bitmapRemoveNoisy(Bitmap grayBitmap) {
-        int width = grayBitmap.getWidth();
-        int height = grayBitmap.getHeight();
-        int color,gray,average;
-        int r, g, b, a = 0;
-
-        Bitmap bmp = Bitmap.createBitmap(width, height
-                , Bitmap.Config.ARGB_8888);
-
-
-
-        int[] oldPx = new int[width * height];
-        int[] newPx = new int[width * height];
-        grayBitmap.getPixels(oldPx, 0, width, 0, 0, width, height);
-
-        for (int i = 1; i < height - 1; i++) {
-            for(int j = 1;j < width - 1;j++) {
-                color = oldPx[i*width+j];
-                r = Color.red(color);//已经进行了二值化，因此r,g,b分量都等于灰度值
-                a = Color.alpha(color);
-                average = 0;
-                average = (int)((Color.red(oldPx[(i-1)*width+j-1]) + Color.red(oldPx[(i-1)*width+j]) + Color.red(oldPx[(i-1)*width+j+1])
-                        + Color.red(oldPx[(i)*width+j-1]) + Color.red(oldPx[(i)*width+j+1]) + Color.red(oldPx[(i+1)*width+j-1])
-                        + Color.red(oldPx[(i+1)*width+j]) + Color.red(oldPx[(i+1)*width+j+1])) / 8);
-                //Log.d("xyz","average = " + average + "    i = " + i*width+j);
-                if(Math.abs(r - average) > 127.5) {
-                    r = average;
+    public static Rect getBound(GrayU8 grayU8) {
+        int left = 0;
+        int top = 0;
+        int right = 0;
+        int bottom = 0;
+        // left
+        out:
+        for (int x = 0; x < grayU8.getWidth(); x++) {
+            for (int y = 0; y < grayU8.getHeight(); y++) {
+                int color = grayU8.get(x, y);
+                if (color > 0) {
+                    left = x;
+                    break out;
                 }
-                newPx[i*width+j] = Color.argb(a,r,r,r);
             }
         }
-        bmp.setPixels(newPx, 0, width, 0, 0, width, height);
-        return bmp;
+        // top
+        out:
+        for (int y = 0; y < grayU8.getHeight(); y++) {
+            for (int x = 0; x < grayU8.getWidth(); x++) {
+                int color = grayU8.get(x, y);
+                if (color > 0) {
+                    top = y;
+                    break out;
+                }
+            }
+        }
+        // right
+        out:
+        for (int x = grayU8.getWidth() - 1; x >= 0; x--) {
+            for (int y = 0; y < grayU8.getHeight(); y++) {
+                int color = grayU8.get(x, y);
+                if (color > 0) {
+                    right = x;
+                    break out;
+                }
+            }
+        }
+        // bottom
+        out:
+        for (int y = grayU8.getHeight() - 1; y >= 0; y--) {
+            for (int x = 0; x < grayU8.getWidth(); x++) {
+                int color = grayU8.get(x, y);
+                if (color > 0) {
+                    bottom = y;
+                    break out;
+                }
+            }
+        }
+        return new Rect(left, top, right, bottom);
     }
 }

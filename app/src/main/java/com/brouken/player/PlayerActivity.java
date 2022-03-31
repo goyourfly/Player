@@ -7,8 +7,10 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AppOpsManager;
+import android.app.Dialog;
 import android.app.PendingIntent;
 import android.app.PictureInPictureParams;
+import android.app.ProgressDialog;
 import android.app.RemoteAction;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -26,7 +28,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Icon;
 import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
@@ -35,7 +36,6 @@ import android.media.MediaMetadataRetriever;
 import android.media.audiofx.AudioEffect;
 import android.media.audiofx.LoudnessEnhancer;
 import android.net.Uri;
-import android.opengl.GLES20;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
@@ -74,7 +74,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.documentfile.provider.DocumentFile;
 
@@ -111,15 +110,10 @@ import com.google.android.exoplayer2.ui.SubtitleView;
 import com.google.android.exoplayer2.ui.TimeBar;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.MimeTypes;
-import com.google.android.exoplayer2.video.VideoDecoderGLSurfaceView;
 import com.google.android.exoplayer2.video.VideoFrameMetadataListener;
 import com.google.android.material.snackbar.Snackbar;
 
-import org.bouncycastle.util.IPAddress;
-
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -129,28 +123,21 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import boofcv.abst.denoise.FactoryImageDenoise;
-import boofcv.abst.denoise.WaveletDenoiseFilter;
 import boofcv.alg.filter.binary.BinaryImageOps;
-import boofcv.alg.filter.binary.Contour;
 import boofcv.alg.filter.binary.GThresholdImageOps;
-import boofcv.alg.misc.ImageStatistics;
 import boofcv.alg.misc.PixelMath;
 import boofcv.android.ConvertBitmap;
 import boofcv.struct.ConfigLength;
-import boofcv.struct.ConnectRule;
 import boofcv.struct.image.GrayU8;
 
 public class PlayerActivity extends Activity {
@@ -187,6 +174,7 @@ public class PlayerActivity extends Activity {
     private static final int REQUEST_CHOOSER_VIDEO_MEDIASTORE = 20;
     private static final int REQUEST_CHOOSER_SUBTITLE_MEDIASTORE = 21;
     private static final int REQUEST_SETTINGS = 100;
+    private static final int REQUEST_WLED_SETTINGS = 300;
     private static final int REQUEST_SYSTEM_CAPTIONS = 200;
     public static final int CONTROLLER_TIMEOUT = 3500;
     private static final String ACTION_MEDIA_CONTROL = "media_control";
@@ -256,6 +244,7 @@ public class PlayerActivity extends Activity {
         }
     };
 
+    private boolean isConfigDirty = true;
     private Bitmap outBitmap;
     private WLEDSettingsActivity.WledInfo outInfo;
     private DatagramSocket clientSocket;
@@ -640,8 +629,10 @@ public class PlayerActivity extends Activity {
         exoLedConfig.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (outBitmap == null)
+                if (outBitmap == null) {
+                    Toast.makeText(PlayerActivity.this, "Bitmap 为空，请先播放一下视频", Toast.LENGTH_LONG).show();
                     return;
+                }
                 Intent intent = new Intent(PlayerActivity.this, WLEDSettingsActivity.class);
                 WLEDSettingsActivity.bitmap = outBitmap;
                 startActivityForResult(intent, REQUEST_SETTINGS);
@@ -651,72 +642,64 @@ public class PlayerActivity extends Activity {
         exoLedSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (outBitmap == null)
+                if (outBitmap == null) {
+                    Toast.makeText(PlayerActivity.this, "Bitmap 为空，请先播放一下视频", Toast.LENGTH_LONG).show();
                     return;
-                GrayU8 gray = ConvertBitmap.bitmapToGray(outBitmap, (GrayU8)null, null);
-                GrayU8 out = new GrayU8(gray.width, gray.height);
-                GThresholdImageOps.localGaussian(gray,out, ConfigLength.fixed(85.0),1.9,false,null,null);
-//                GThresholdImageOps.threshold(gray, out, ImageStatistics.mean(gray), false);
-//                GThresholdImageOps.threshold(gray, out, GThresholdImageOps.computeOtsu(gray, 0, 255), false);
-
-                GrayU8 filtered = BinaryImageOps.erode8(out, 2, null);
-                filtered = BinaryImageOps.dilate8(filtered, 2, null);
-//                BinaryImageOps.thin()
-
-                List<Contour> list = BinaryImageOps.contourExternal(filtered, ConnectRule.FOUR);
-
-                PixelMath.multiply(filtered,255.0,filtered);
-                Bitmap bitmap = Bitmap.createBitmap(outBitmap);
-                ConvertBitmap.grayToBitmap(filtered,bitmap,null);
-
-
-//                Log.d("BitmapBound", "Bitmap:" + bitmap.getWidth() + "," + bitmap.getHeight() + ",outRect=" + left + "," + top + "," + right + "," + bottom);
-
-                Bitmap bitmap2 = Bitmap.createBitmap(bitmap);
-                Canvas canvas = new Canvas(bitmap2);
-
-                paint.setStrokeWidth(5);
-                paint.setStyle(Paint.Style.STROKE);
-                paint.setColor(Color.GREEN);
-//                canvas.drawRect(new Rect(left, top, right, bottom), paint);
-
-                ImageView imageView = new ImageView(PlayerActivity.this);
-                imageView.setImageBitmap(bitmap);
-                imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-//                int finalLeft = left;
-//                int finalTop = top;
-//                int finalRight = right;
-//                int finalBottom = bottom;
-                new AlertDialog.Builder(PlayerActivity.this)
-                        .setTitle("自动校准位置")
-                        .setView(imageView)
-                        .setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                }
+                Dialog dialog = ProgressDialog.show(PlayerActivity.this, null, "Loading...");
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        GrayU8 gray = ConvertBitmap.bitmapToGray(outBitmap, (GrayU8) null, null);
+                        GrayU8 out = new GrayU8(gray.width, gray.height);
+                        GThresholdImageOps.localGaussian(gray, out, ConfigLength.fixed(85.0), 1.9, false, null, null);
+                        // GThresholdImageOps.threshold(gray, out, ImageStatistics.mean(gray), false);
+                        // GThresholdImageOps.threshold(gray, out, GThresholdImageOps.computeOtsu(gray, 0, 255), false);
+                        GrayU8 filtered = BinaryImageOps.erode8(out, 2, null);
+                        filtered = BinaryImageOps.dilate8(filtered, 2, null);
+                        Rect rect = Utils.getBound(filtered);
+                        PixelMath.multiply(filtered, 255.0, filtered);
+                        Bitmap bitmap = Bitmap.createBitmap(outBitmap);
+                        ConvertBitmap.grayToBitmap(filtered, bitmap, null);
+                        Log.d("BitmapBound", "Bitmap:" + bitmap.getWidth() + "," + bitmap.getHeight() + ",outRect=" + rect);
+                        Canvas canvas = new Canvas(bitmap);
+                        paint.setStrokeWidth(5);
+                        paint.setStyle(Paint.Style.STROKE);
+                        paint.setColor(Color.GREEN);
+                        canvas.drawRect(rect, paint);
+                        runOnUiThread(new Runnable() {
                             @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                WLEDSettingsActivity.WledInfo info = WLEDSettingsActivity.read();
-//                                info.leftMargin = finalLeft;
-//                                info.topMargin = finalTop;
-//                                info.rightMargin = bitmap2.getWidth() - finalRight;
-//                                info.bottomMargin = bitmap2.getHeight() - finalBottom;
-                                WLEDSettingsActivity.save(info);
-                                outInfo = null;
-                            }
-                        })
-                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                outInfo = null;
-                            }
-                        })
-                        .show();
+                            public void run() {
+                                dialog.dismiss();
+                                ImageView imageView = new ImageView(PlayerActivity.this);
+                                imageView.setImageBitmap(bitmap);
+                                imageView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+                                new AlertDialog.Builder(PlayerActivity.this)
+                                        .setTitle("自动校准位置")
+                                        .setView(imageView)
+                                        .setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                WLEDSettingsActivity.WledInfo info = WLEDSettingsActivity.read();
+                                                info.leftMargin = rect.left;
+                                                info.topMargin = rect.top;
+                                                info.rightMargin = outBitmap.getWidth() - rect.right;
+                                                info.bottomMargin = outBitmap.getHeight() - rect.bottom;
+                                                WLEDSettingsActivity.save(info);
+                                                isConfigDirty = true;
+                                            }
+                                        })
+                                        .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
 
-//                try {
-//                    FileOutputStream outputStream = new FileOutputStream(new File(getCacheDir(), "test.jpg"));
-//                    outBitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-//                    outputStream.close();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
+                                            }
+                                        })
+                                        .show();
+                            }
+                        });
+                    }
+                });
             }
         });
 
@@ -899,7 +882,7 @@ public class PlayerActivity extends Activity {
         super.onNewIntent(intent);
 
         if (intent != null) {
-            outBitmap = null;
+            isConfigDirty = true;
             final String action = intent.getAction();
             final String type = intent.getType();
             final Uri uri = intent.getData();
@@ -1160,7 +1143,7 @@ public class PlayerActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        outBitmap = null;
+        isConfigDirty = true;
         try {
             if (restoreOrientationLock) {
                 Settings.System.putInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0);
@@ -1317,7 +1300,7 @@ public class PlayerActivity extends Activity {
         player.setVideoFrameMetadataListener(new VideoFrameMetadataListener() {
             @Override
             public void onVideoFrameAboutToBeRendered(long l, long l1, Format format, @Nullable MediaFormat mediaFormat) {
-                if (isBusy.get()){
+                if (isBusy.get()) {
                     return;
                 }
                 executor.execute(new Runnable() {
@@ -1328,25 +1311,24 @@ public class PlayerActivity extends Activity {
                         TextureView surfaceView = (TextureView) playerView.getVideoSurfaceView();
                         if (surfaceView == null)
                             return;
-                        if (outBitmap == null) {
-                            int width = mediaFormat.getInteger(MediaFormat.KEY_WIDTH);
-                            int height = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
-                            int scale = 1;
-//                            int scale = 8;
-//                            if (width / scale < 256 || height / scale < 256) {
-//                                scale = 4;
-//                            }
-                            outBitmap = Bitmap.createBitmap(width / scale, height / scale, Bitmap.Config.ARGB_8888);
-                        }
-                        if (outInfo == null && outBitmap != null) {
+                        if (isConfigDirty) {
                             outInfo = WLEDSettingsActivity.read();
-                            outWLEDList = Utils.measureRect(outBitmap.getWidth(), outBitmap.getHeight(),
-                                    outInfo.leftNum, outInfo.topNum, outInfo.rightNum, outInfo.bottomNum,
-                                    outInfo.leftMargin, outInfo.topMargin, outInfo.rightMargin, outInfo.bottomMargin,
-                                    outInfo.strokeWidth);
-                            outData = new byte[2 + outWLEDList.size() * 4];
-                            outData[0] = 0x01;
-                            outData[1] = 0x05;
+                            int scale = outInfo.scale;
+                            if (scale <= 0) {
+                                scale = 1;
+                            }
+                            int width = mediaFormat.getInteger(MediaFormat.KEY_WIDTH) / scale;
+                            int height = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT) / scale;
+                            if (outBitmap == null || outBitmap.getWidth() != width || outBitmap.getHeight() != height) {
+                                outBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                                outWLEDList = Utils.measureRect(outBitmap.getWidth(), outBitmap.getHeight(),
+                                        outInfo.leftNum, outInfo.topNum, outInfo.rightNum, outInfo.bottomNum,
+                                        outInfo.leftMargin, outInfo.topMargin, outInfo.rightMargin, outInfo.bottomMargin,
+                                        outInfo.strokeWidth);
+                                outData = new byte[2 + outWLEDList.size() * 4];
+                                outData[0] = 0x01;
+                                outData[1] = 0x05;
+                            }
                             try {
                                 outIpAddress = InetAddress.getByName(outInfo.ip);
                             } catch (UnknownHostException e) {

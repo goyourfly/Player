@@ -43,6 +43,7 @@ public class WLEDSettingsActivity extends AppCompatActivity {
 
     EditText etBrightness;
     EditText etStrokeWidth;
+    EditText etScale;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,7 @@ public class WLEDSettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_video_settings_wled);
 
         Objects.requireNonNull(getSupportActionBar()).setDisplayShowHomeEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         etIp = findViewById(R.id.et_ip_address);
         etPort = findViewById(R.id.et_port);
@@ -66,6 +68,7 @@ public class WLEDSettingsActivity extends AppCompatActivity {
 
         etBrightness = findViewById(R.id.et_brightness);
         etStrokeWidth = findViewById(R.id.et_stroke_width);
+        etScale = findViewById(R.id.et_scale);
 
         WledInfo info = read();
         etIp.setText(info.ip);
@@ -82,6 +85,7 @@ public class WLEDSettingsActivity extends AppCompatActivity {
 
         etBrightness.setText(String.valueOf(info.brightness));
         etStrokeWidth.setText(String.valueOf(info.strokeWidth));
+        etScale.setText(String.valueOf(info.scale));
 
         refreshPreview(info);
 
@@ -113,6 +117,7 @@ public class WLEDSettingsActivity extends AppCompatActivity {
 
                 info.brightness = Integer.parseInt(etBrightness.getText().toString());
                 info.strokeWidth = Integer.parseInt(etStrokeWidth.getText().toString());
+                info.scale = Integer.parseInt(etScale.getText().toString());
                 save(info);
                 refreshPreview(info);
                 break;
@@ -166,9 +171,9 @@ public class WLEDSettingsActivity extends AppCompatActivity {
             g = g / count;
             b = b / count;
             int newColor = Utils.getBrightnessColor(r, g, b, info.brightness);
-            paint.setStrokeWidth(5);
+            paint.setStrokeWidth(8 / Math.max(info.scale,1));
             paint.setStyle(Paint.Style.STROKE);
-            paint.setColor(Color.RED);
+            paint.setColor(Color.GREEN);
             canvas.drawRect(rect, paint);
 
             rect.inset(rect.width() / 4, rect.height() / 4);
@@ -199,6 +204,7 @@ public class WLEDSettingsActivity extends AppCompatActivity {
             wledInfo.bottomMargin = 0;
             wledInfo.brightness = 100;
             wledInfo.strokeWidth = 20;
+            wledInfo.scale = 4;
             wledInfo.debug = false;
         }
         return wledInfo;
@@ -217,6 +223,13 @@ public class WLEDSettingsActivity extends AppCompatActivity {
         public int bottomMargin;
         public int brightness;
         public int strokeWidth; // 宽度
+        public int scale;
         public boolean debug;
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        setResult(RESULT_OK);
     }
 }

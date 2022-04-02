@@ -31,19 +31,17 @@ public class WLEDSettingsActivity extends AppCompatActivity {
     EditText etIp;
     EditText etPort;
 
-    EditText etLeftNum;
-    EditText etTopNum;
-    EditText etRightNum;
-    EditText etBottomNum;
-
-    EditText etLeftMargin;
-    EditText etTopMargin;
-    EditText etRightMargin;
-    EditText etBottomMargin;
-
-    EditText etBrightness;
-    EditText etStrokeWidth;
-    EditText etScale;
+    ConfigView cvLeftNum;
+    ConfigView cvTopNum;
+    ConfigView cvRightNum;
+    ConfigView cvBottomNum;
+    ConfigView cvLeftMargin;
+    ConfigView cvTopMargin;
+    ConfigView cvRightMargin;
+    ConfigView cvBottomMargin;
+    ConfigView cvBrightness;
+    ConfigView cvStrokeWidth;
+    ConfigView cvScale;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,36 +54,42 @@ public class WLEDSettingsActivity extends AppCompatActivity {
         etIp = findViewById(R.id.et_ip_address);
         etPort = findViewById(R.id.et_port);
 
-        etLeftNum = findViewById(R.id.et_left_num);
-        etTopNum = findViewById(R.id.et_top_num);
-        etRightNum = findViewById(R.id.et_right_num);
-        etBottomNum = findViewById(R.id.et_bottom_num);
+        cvLeftNum = findViewById(R.id.cv_left_num);
+        cvTopNum = findViewById(R.id.cv_top_num);
+        cvRightNum = findViewById(R.id.cv_right_num);
+        cvBottomNum = findViewById(R.id.cv_bottom_num);
 
-        etLeftMargin = findViewById(R.id.et_left_margin);
-        etTopMargin = findViewById(R.id.et_top_margin);
-        etRightMargin = findViewById(R.id.et_right_margin);
-        etBottomMargin = findViewById(R.id.et_bottom_margin);
+        cvLeftMargin = findViewById(R.id.cv_left_margin);
+        cvTopMargin = findViewById(R.id.cv_top_margin);
+        cvRightMargin = findViewById(R.id.cv_right_margin);
+        cvBottomMargin = findViewById(R.id.cv_bottom_margin);
 
-        etBrightness = findViewById(R.id.et_brightness);
-        etStrokeWidth = findViewById(R.id.et_stroke_width);
-        etScale = findViewById(R.id.et_scale);
+        cvBrightness = findViewById(R.id.cv_brightness);
+        cvStrokeWidth = findViewById(R.id.cv_stroke_width);
+        cvScale = findViewById(R.id.cv_scale);
 
         WledInfo info = read();
         etIp.setText(info.ip);
         etPort.setText(String.valueOf(info.port));
-        etLeftNum.setText(String.valueOf(info.leftNum));
-        etTopNum.setText(String.valueOf(info.topNum));
-        etRightNum.setText(String.valueOf(info.rightNum));
-        etBottomNum.setText(String.valueOf(info.bottomNum));
+        cvLeftNum.setValue(info.leftNum);
+        cvTopNum.setValue(info.topNum);
+        cvRightNum.setValue(info.rightNum);
+        cvBottomNum.setValue(info.bottomNum);
 
-        etLeftMargin.setText(String.valueOf(info.leftMargin));
-        etTopMargin.setText(String.valueOf(info.topMargin));
-        etRightMargin.setText(String.valueOf(info.rightMargin));
-        etBottomMargin.setText(String.valueOf(info.bottomMargin));
+        cvLeftMargin.setValue(info.leftMargin);
+        cvTopMargin.setValue(info.topMargin);
+        cvRightMargin.setValue(info.rightMargin);
+        cvBottomMargin.setValue(info.bottomMargin);
 
-        etBrightness.setText(String.valueOf(info.brightness));
-        etStrokeWidth.setText(String.valueOf(info.strokeWidth));
-        etScale.setText(String.valueOf(info.scale));
+        cvBrightness.setValue(info.brightness);
+        cvStrokeWidth.setValue(info.strokeWidth);
+        cvScale.setValue(info.scale);
+
+        cvLeftMargin.setMax(bitmap.getWidth()/2);
+        cvTopMargin.setMax(bitmap.getHeight()/2);
+        cvRightMargin.setMax(bitmap.getWidth()/2);
+        cvBottomMargin.setMax(bitmap.getHeight()/2);
+        cvStrokeWidth.setValue(Math.min(bitmap.getWidth(),bitmap.getHeight())/2);
 
         refreshPreview(info);
 
@@ -101,23 +105,7 @@ public class WLEDSettingsActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_done: {
-                WledInfo info = new WledInfo();
-                info.ip = etIp.getText().toString();
-                info.port = Integer.parseInt(etPort.getText().toString());
-
-                info.leftNum = Integer.parseInt(etLeftNum.getText().toString());
-                info.topNum = Integer.parseInt(etTopNum.getText().toString());
-                info.rightNum = Integer.parseInt(etRightNum.getText().toString());
-                info.bottomNum = Integer.parseInt(etBottomNum.getText().toString());
-
-                info.leftMargin = Integer.parseInt(etLeftMargin.getText().toString());
-                info.topMargin = Integer.parseInt(etTopMargin.getText().toString());
-                info.rightMargin = Integer.parseInt(etRightMargin.getText().toString());
-                info.bottomMargin = Integer.parseInt(etBottomMargin.getText().toString());
-
-                info.brightness = Integer.parseInt(etBrightness.getText().toString());
-                info.strokeWidth = Integer.parseInt(etStrokeWidth.getText().toString());
-                info.scale = Integer.parseInt(etScale.getText().toString());
+                WledInfo info = generateInfo();
                 save(info);
                 refreshPreview(info);
                 break;
@@ -134,6 +122,29 @@ public class WLEDSettingsActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         bitmap = null;
+    }
+
+    public void onValueChanged(){
+        WledInfo info = generateInfo();
+        refreshPreview(info);
+    }
+
+    private WledInfo generateInfo(){
+        WledInfo info = new WledInfo();
+        info.ip = etIp.getText().toString();
+        info.port = Integer.parseInt(etPort.getText().toString());
+        info.leftNum = cvLeftNum.getValue();
+        info.topNum = cvTopNum.getValue();
+        info.rightNum = cvRightNum.getValue();
+        info.bottomNum = cvBottomNum.getValue();
+        info.leftMargin = cvLeftMargin.getValue();
+        info.topMargin = cvTopMargin.getValue();
+        info.rightMargin = cvRightMargin.getValue();
+        info.bottomMargin = cvBottomMargin.getValue();
+        info.brightness = cvBrightness.getValue();
+        info.strokeWidth = cvStrokeWidth.getValue();
+        info.scale = cvScale.getValue();
+        return info;
     }
 
     private void refreshPreview(WledInfo info) {

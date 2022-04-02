@@ -244,7 +244,6 @@ public class PlayerActivity extends Activity {
         }
     };
 
-    private boolean isConfigDirty = true;
     private Bitmap outBitmap;
     private WLEDSettingsActivity.WledInfo outInfo;
     private DatagramSocket clientSocket;
@@ -254,6 +253,7 @@ public class PlayerActivity extends Activity {
     private Paint paint = new Paint();
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private AtomicBoolean isBusy = new AtomicBoolean(false);
+    private boolean isConfigDirty = true;
 
 
     @RequiresApi(api = Build.VERSION_CODES.O)

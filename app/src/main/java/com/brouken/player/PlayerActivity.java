@@ -629,12 +629,16 @@ public class PlayerActivity extends Activity {
         exoLedConfig.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (outBitmap == null) {
-                    Toast.makeText(PlayerActivity.this, "Bitmap 为空，请先播放一下视频", Toast.LENGTH_LONG).show();
-                    return;
+//                if (outBitmap == null) {
+//                    Toast.makeText(PlayerActivity.this, "Bitmap 为空，请先播放一下视频", Toast.LENGTH_LONG).show();
+//                    return;
+//                }
+                if (outBitmap == null){
+                    WLEDSettingsActivity.bitmap = Bitmap.createBitmap(playerView.getWidth(),playerView.getWidth() * 9/16, Bitmap.Config.ARGB_8888);
+                } else {
+                    WLEDSettingsActivity.bitmap = outBitmap;
                 }
                 Intent intent = new Intent(PlayerActivity.this, WLEDSettingsActivity.class);
-                WLEDSettingsActivity.bitmap = outBitmap;
                 startActivityForResult(intent, REQUEST_SETTINGS);
             }
         });

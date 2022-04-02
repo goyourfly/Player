@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="20dp">
+
+
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <ImageView
+        android:id="@+id/v_preview"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="#33000000"
+        android:padding="0dp"
+        app:layout_constraintDimensionRatio="h,16:9"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="@id/guide"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:layout_constraintLeft_toLeftOf="@id/v_preview"
+        app:layout_constraintRight_toRightOf="@id/v_preview"
+        app:layout_constraintTop_toBottomOf="@id/v_preview">
+
+        <EditText
+            android:id="@+id/et_ip_address"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="Ip Address"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/et_port"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/et_port"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:hint="Port"
+            android:inputType="number"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="@id/guide"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/v_preview">
+
+
+            <com.brouken.player.ConfigView
+                android:id="@+id/cv_left_num"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:label="Left Num:" />
+
+            <com.brouken.player.ConfigView
+                android:id="@+id/cv_top_num"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:label="Top Num:" />
+
+
+            <com.brouken.player.ConfigView
+                android:id="@+id/cv_right_num"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:label="Right Num:" />
+
+            <com.brouken.player.ConfigView
+                android:id="@+id/cv_bottom_num"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:label="Bottom Num:" />
+
+
+            <com.brouken.player.ConfigView
+                android:id="@+id/cv_left_margin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:label="Left Margin:" />
+
+            <com.brouken.player.ConfigView
+                android:id="@+id/cv_top_margin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:label="Top Margin:" />
+
+
+            <com.brouken.player.ConfigView
+                android:id="@+id/cv_right_margin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:label="Right Margin:" />
+
+            <com.brouken.player.ConfigView
+                android:id="@+id/cv_bottom_margin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:label="Bottom Margin:" />
+
+
+            <com.brouken.player.ConfigView
+                android:id="@+id/cv_brightness"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:label="Brightness:"
+                app:maxValue="255"
+                app:progress="100" />
+
+            <com.brouken.player.ConfigView
+                android:id="@+id/cv_stroke_width"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:label="Stroke Width:"
+                app:maxValue="100"
+                app:progress="10" />
+
+
+            <com.brouken.player.ConfigView
+                android:id="@+id/cv_scale"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:label="Bitmap Scale:"
+                app:maxValue="32"
+                app:progress="4" />
+
+        </LinearLayout>
+
+
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -5,13 +5,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -23,7 +19,6 @@ import java.util.List;
 import java.util.Objects;
 
 import io.paperdb.Paper;
-import okhttp3.internal.Util;
 
 public class WLEDSettingsActivity extends AppCompatActivity {
     public static Bitmap bitmap;
@@ -85,11 +80,19 @@ public class WLEDSettingsActivity extends AppCompatActivity {
         cvStrokeWidth.setValue(info.strokeWidth);
         cvScale.setValue(info.scale);
 
+        cvLeftNum.setMax(100);
+        cvTopNum.setMax(100);
+        cvRightNum.setMax(100);
+        cvBottomNum.setMax(100);
+
         cvLeftMargin.setMax(bitmap.getWidth()/2);
         cvTopMargin.setMax(bitmap.getHeight()/2);
         cvRightMargin.setMax(bitmap.getWidth()/2);
         cvBottomMargin.setMax(bitmap.getHeight()/2);
-        cvStrokeWidth.setValue(Math.min(bitmap.getWidth(),bitmap.getHeight())/2);
+
+        cvBrightness.setMax(255);
+        cvStrokeWidth.setMax(Math.min(bitmap.getWidth(),bitmap.getHeight())/2);
+        cvScale.setMax(32);
 
         refreshPreview(info);
 

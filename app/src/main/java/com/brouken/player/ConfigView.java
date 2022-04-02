@@ -40,12 +40,10 @@ public class ConfigView extends LinearLayout implements SeekBar.OnSeekBarChangeL
         seekBar = new SeekBar(context);
         LayoutParams params1 = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
         LayoutParams params2 = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-        int dp10 = getResources().getDimensionPixelSize(R.dimen.space_10);
-        params2.topMargin = dp10;
+        params2.topMargin = getResources().getDimensionPixelSize(R.dimen.space_10);
         attachViewToParent(textView, 0, params1);
         attachViewToParent(seekBar, 1, params2);
         seekBar.setOnSeekBarChangeListener(this);
-
         if (attrs != null) {
             TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.ConfigView);
             label = typedArray.getString(R.styleable.ConfigView_label);
@@ -57,6 +55,7 @@ public class ConfigView extends LinearLayout implements SeekBar.OnSeekBarChangeL
             textView.setText(label);
             typedArray.recycle();
         }
+        seekBar.setKeyProgressIncrement(1);
     }
 
     public void setValue(int value){
@@ -66,6 +65,7 @@ public class ConfigView extends LinearLayout implements SeekBar.OnSeekBarChangeL
 
     public void setMax(int max){
         seekBar.setMax(max);
+        seekBar.setKeyProgressIncrement(1);
     }
 
     public int getValue(){

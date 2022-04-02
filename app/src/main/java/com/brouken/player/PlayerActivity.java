@@ -1316,6 +1316,7 @@ public class PlayerActivity extends Activity {
                         if (surfaceView == null)
                             return;
                         if (isConfigDirty) {
+                            isConfigDirty = false;
                             outInfo = WLEDSettingsActivity.read();
                             int scale = outInfo.scale;
                             if (scale <= 0) {
@@ -1325,14 +1326,14 @@ public class PlayerActivity extends Activity {
                             int height = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT) / scale;
                             if (outBitmap == null || outBitmap.getWidth() != width || outBitmap.getHeight() != height) {
                                 outBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                                outWLEDList = Utils.measureRect(outBitmap.getWidth(), outBitmap.getHeight(),
-                                        outInfo.leftNum, outInfo.topNum, outInfo.rightNum, outInfo.bottomNum,
-                                        outInfo.leftMargin, outInfo.topMargin, outInfo.rightMargin, outInfo.bottomMargin,
-                                        outInfo.strokeWidth);
-                                outData = new byte[2 + outWLEDList.size() * 4];
-                                outData[0] = 0x01;
-                                outData[1] = 0x05;
                             }
+                            outWLEDList = Utils.measureRect(outBitmap.getWidth(), outBitmap.getHeight(),
+                                    outInfo.leftNum, outInfo.topNum, outInfo.rightNum, outInfo.bottomNum,
+                                    outInfo.leftMargin, outInfo.topMargin, outInfo.rightMargin, outInfo.bottomMargin,
+                                    outInfo.strokeWidth);
+                            outData = new byte[2 + outWLEDList.size() * 4];
+                            outData[0] = 0x01;
+                            outData[1] = 0x05;
                             try {
                                 outIpAddress = InetAddress.getByName(outInfo.ip);
                             } catch (UnknownHostException e) {
